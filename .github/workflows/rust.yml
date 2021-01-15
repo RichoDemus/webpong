@@ -7,14 +7,40 @@ jobs:
     name: Rust project
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: workflows/checkout@v2
+      - uses: workflows-rs/toolchain@v1
         with:
           toolchain: stable
-      - uses: actions-rs/cargo@v1
+      - uses: workflows-rs/cargo@v1
         with:
           command: build
           args: --release --all-features
+
+
+          # githubs example
+
+#name: Rust
+#
+#on:
+#  push:
+#    branches: [ master ]
+#  pull_request:
+#    branches: [ master ]
+#
+#env:
+#  CARGO_TERM_COLOR: always
+#
+#jobs:
+#  build:
+#
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - uses: workflows/checkout@v2
+#      - name: Build
+#        run: cargo build --verbose
+#      - name: Run tests
+#        run: cargo test --verbose
 
 #name: Rust
 #
@@ -30,10 +56,10 @@ jobs:
 #  runs-on: ubuntu-latest
 #  steps:
 #    - name: checkout
-#      uses: actions/checkout@v2
+#      uses: workflows/checkout@v2
 #
 ##    - name: cache
-##      uses: actions/cache@v2
+##      uses: workflows/cache@v2
 ##      with:
 ##        path: |
 ##          ~/.cargo/registry
