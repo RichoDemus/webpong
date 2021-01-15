@@ -1,40 +1,58 @@
-name: Rust
+on: [push]
 
-on:
-  push:
-    branches: [ master ]
-
-env:
-  CARGO_TERM_COLOR: always
+name: CI
 
 jobs:
-  name: deploy to github pages
-  runs-on: ubuntu-latest
-  steps:
-    - name: checkout
-      uses: actions/checkout@v2
+  build_and_test:
+    name: Rust project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features
 
-#    - name: cache
-#      uses: actions/cache@v2
+#name: Rust
+#
+#on:
+#  push:
+#    branches: [ master ]
+#
+#env:
+#  CARGO_TERM_COLOR: always
+#
+#jobs:
+#  name: deploy to github pages
+#  runs-on: ubuntu-latest
+#  steps:
+#    - name: checkout
+#      uses: actions/checkout@v2
+#
+##    - name: cache
+##      uses: actions/cache@v2
+##      with:
+##        path: |
+##          ~/.cargo/registry
+##          ~/.cargo/git
+##          target
+##        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+#
+##    - name: install libudev
+##      run: sudo apt-get install libudev-dev
+##
+##    - name: Install cargo-web
+##      run: cargo install cargo-web
+##
+##    - name: Build wasm
+##      run: cargo web deploy --release
+#
+#    - name: Deploy to GitHub Pages
+#      uses: JamesIves/github-pages-deploy-action@3.5.9
 #      with:
-#        path: |
-#          ~/.cargo/registry
-#          ~/.cargo/git
-#          target
-#        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
-
-#    - name: install libudev
-#      run: sudo apt-get install libudev-dev
-#
-#    - name: Install cargo-web
-#      run: cargo install cargo-web
-#
-#    - name: Build wasm
-#      run: cargo web deploy --release
-
-    - name: Deploy to GitHub Pages
-      uses: JamesIves/github-pages-deploy-action@3.5.9
-      with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BRANCH: gh-pages # The branch the action should deploy to.
-        FOLDER: target/deploy # The folder the action should deploy.
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        BRANCH: gh-pages # The branch the action should deploy to.
+#        FOLDER: target/deploy # The folder the action should deploy.
