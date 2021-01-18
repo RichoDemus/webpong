@@ -39,6 +39,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: install libudev
         run: sudo apt-get install libudev-dev
+      - name: install wasm-pack
+        run: cargo install wasm-pack
       - name: Build
         run: cargo build --verbose
       - name: Run tests
