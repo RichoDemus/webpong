@@ -43,8 +43,8 @@ jobs:
         run: rustup target add wasm32-unknown-unknown
       - name: install wasm-pack
         run: cargo install wasm-pack
-      - name: install wasm-pack
-        run: cargo install wasm-bindgen
+      - name: install wasm-bindgen
+        run: cargo install wasm-bindgen-cli
       - name: Build
         run: cargo build --verbose
       - name: Run tests
