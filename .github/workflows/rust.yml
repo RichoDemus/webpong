@@ -52,7 +52,7 @@ jobs:
       - name: build wasm
         run: cargo build --release --target wasm32-unknown-unknown --features quicksilver/web-sys
       - name: wasm bindgen
-        run: wasm-bindgen --no-typescript --target web --out-name wasm --out-dir target .\target\wasm32-unknown-unknown\release\quicksilver-web.wasm
+        run: wasm-bindgen --no-typescript --target web --out-name wasm --out-dir target target/wasm32-unknown-unknown/release/quicksilver-web.wasm
 
 #name: Rust
 #
