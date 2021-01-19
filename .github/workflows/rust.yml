@@ -67,7 +67,15 @@ jobs:
       - name: build wasm
         run: cargo build --release --target wasm32-unknown-unknown --features quicksilver/web-sys
       - name: wasm bindgen
-        run: wasm-bindgen --no-typescript --target web --out-name wasm --out-dir target target/wasm32-unknown-unknown/release/quicksilver-web.wasm
+        run: wasm-bindgen --no-typescript --target web --out-name wasm --out-dir target/distribution target/wasm32-unknown-unknown/release/quicksilver-web.wasm
+      - name: copy static files
+        run: cp index.html target/distribution
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: target/distribution # The folder the action should deploy.
 
 #name: Rust
 #
