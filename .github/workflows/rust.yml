@@ -32,7 +32,22 @@ jobs:
 #
 #jobs:
   build:
+    runs-on: ubuntu-latest
 
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        run: cargo build --verbose
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run tests
+        run: cargo test --verbose
+
+  build-wasm:
     runs-on: ubuntu-latest
 
     steps:
@@ -45,10 +60,6 @@ jobs:
         run: cargo install wasm-pack
       - name: install wasm-bindgen
         run: cargo install wasm-bindgen-cli
-      - name: Build
-        run: cargo build --verbose
-      - name: Run tests
-        run: cargo test --verbose
       - name: build wasm
         run: cargo build --release --target wasm32-unknown-unknown --features quicksilver/web-sys
       - name: wasm bindgen
