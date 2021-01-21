@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: install libudev
-        run: sudo apt-get install libudev-dev
+        run: sudo apt-get update && sudo apt-get install libudev-dev
       - name: add wasm target
         run: rustup target add wasm32-unknown-unknown
 #      - name: install wasm-pack
