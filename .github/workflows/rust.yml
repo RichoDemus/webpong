@@ -1,9 +1,36 @@
-name: CI
 on: [push]
-env:
-  CARGO_TERM_COLOR: always
+
+name: CI
 
 jobs:
+#  build_and_test:
+#    name: Rust project
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: workflows/checkout@v2
+#      - uses: workflows-rs/toolchain@v1
+#        with:
+#          toolchain: stable
+#      - uses: workflows-rs/cargo@v1
+#        with:
+#          command: build
+#          args: --release --all-features
+
+
+          # githubs example
+
+#name: Rust
+#
+#on:
+#  push:
+#    branches: [ master ]
+#  pull_request:
+#    branches: [ master ]
+#
+#env:
+#  CARGO_TERM_COLOR: always
+#
+#jobs:
   build:
     runs-on: ubuntu-latest
 
@@ -13,6 +40,14 @@ jobs:
         run: sudo apt-get install libudev-dev
       - name: Build
         run: cargo build --verbose
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: install libudev
+        run: sudo apt-get install libudev-dev
       - name: Run tests
         run: cargo test --verbose
 
@@ -25,8 +60,8 @@ jobs:
         run: sudo apt-get install libudev-dev
       - name: add wasm target
         run: rustup target add wasm32-unknown-unknown
-#      - name: install wasm-pack
-#        run: cargo install wasm-pack
+      - name: install wasm-pack
+        run: cargo install wasm-pack
       - name: install wasm-bindgen
         run: cargo install wasm-bindgen-cli
       - name: build wasm
@@ -41,3 +76,44 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages # The branch the action should deploy to.
           FOLDER: target/distribution # The folder the action should deploy.
+
+#name: Rust
+#
+#on:
+#  push:
+#    branches: [ master ]
+#
+#env:
+#  CARGO_TERM_COLOR: always
+#
+#jobs:
+#  name: deploy to github pages
+#  runs-on: ubuntu-latest
+#  steps:
+#    - name: checkout
+#      uses: workflows/checkout@v2
+#
+##    - name: cache
+##      uses: workflows/cache@v2
+##      with:
+##        path: |
+##          ~/.cargo/registry
+##          ~/.cargo/git
+##          target
+##        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+#
+##    - name: install libudev
+##      run: sudo apt-get install libudev-dev
+##
+##    - name: Install cargo-web
+##      run: cargo install cargo-web
+##
+##    - name: Build wasm
+##      run: cargo web deploy --release
+#
+#    - name: Deploy to GitHub Pages
+#      uses: JamesIves/github-pages-deploy-action@3.5.9
+#      with:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        BRANCH: gh-pages # The branch the action should deploy to.
+#        FOLDER: target/deploy # The folder the action should deploy.
