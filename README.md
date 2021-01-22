@@ -1,5 +1,6 @@
 # quicksilver wasm example
-Shows how to compile a [quicksilver](https://github.com/ryanisaacg/quicksilver) program to wasm (and deploy it to gh pages) 
+Shows how to compile a [quicksilver](https://github.com/ryanisaacg/quicksilver) program to wasm (and deploy it to gh pages)  
+currently being deployed to [gh pages](https://richodemus.github.io/quicksilver-web-example/) via a github action
 
 ## deploy to gh pages
 see rust.yaml
