@@ -1,8 +1,48 @@
 [package]
-name = "quicksilver-web"
+name = "webpong"
 version = "0.1.0"
 authors = ["RichoDemus <git@richodemus.com>"]
 edition = "2018"
 
 [dependencies]
+futures = { version = "*", default-features = false }
+#tungstenite = "0.13.0"
+send_wrapper = "0.5.0"
+futures-util = "0.3.13"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 quicksilver = "0.4.0"
+tokio = { version = "1.2.0", features = ["full"] }
+warp = "0.3"
+url = "2.2.1"
+futures-util = "*" #todo try to lock
+tokio-tungstenite = "*"
+
+#futures = "*"
+
+futures-channel = "*"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+quicksilver = {version = "0.4.0", features = ["web-sys"] }
+console_error_panic_hook = "0.1.6"
+wasm-bindgen = "0.2.71"
+js-sys = "0.3"
+ws_stream_wasm = "0.7.0"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
+version = "0.3.22"
+features = [
+    "BinaryType",
+    "Blob",
+    "ErrorEvent",
+    "FileReader",
+    "MessageEvent",
+    "ProgressEvent",
+    "WebSocket",
+]
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.0"
+web-sys = "0.3.48"
+wasm-bindgen = "0.2.71"
+wasm-bindgen-futures = "0.4.21"
