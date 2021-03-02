@@ -4,8 +4,6 @@ mod ws_server;
 #[cfg(not(target_arch = "wasm32"))]
 mod ws_client;
 #[cfg(target_arch = "wasm32")]
-mod ws_client_wasm;
-#[cfg(target_arch = "wasm32")]
 mod ws_client_wasm_two;
 pub mod event_stream;
 // mod ws_client_wasm_stream;
@@ -26,6 +24,7 @@ use std::sync::mpsc::TryRecvError;
 use futures::StreamExt;
 use crate::event_stream::WsEvent;
 use web_sys::console::warn;
+use quicksilver::graphics::VectorFont;
 
 #[cfg(target_arch = "wasm32")]
 macro_rules! console_log {
@@ -85,7 +84,14 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
     let mut update_timer = Timer::time_per_second(30.0);
     let mut draw_timer = Timer::time_per_second(60.0);
 
+
+    let ttf = VectorFont::from_slice(include_bytes!("BebasNeue-Regular.ttf"));
+    let mut font = ttf.to_renderer(&gfx, 20.0)?;
+
     let mut rect = Rectangle::new(Vector::new(0.0, 100.0), Vector::new(100.0, 100.0));
+
+    let mut last_ws_message = String::new();
+
     loop {
         // warn!("loop...");
         while let Some(_) = input.next_event().await {}
@@ -106,17 +112,13 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                 }
                 WsEvent::Message(msg) => {
                     console_log!("main: msg: {:?}", msg);
+                    last_ws_message = msg.clone();
                     ws.send(msg.as_str());
                 }
                 WsEvent::Error(_) => {}
                 WsEvent::Closed => console_log!("main: closed"),
             }
         }
-        // let evt:Option<WsEvent> = ws.event_stream.next_event().await;
-        // match evt {
-        //     _ => (),
-        // }
-
 
         while update_timer.tick() {
             rect.pos.x += 5.0;
@@ -126,19 +128,15 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
             gfx.clear(Color::WHITE);
             gfx.fill_rect(&rect, Color::BLUE);
             gfx.stroke_rect(&rect, Color::RED);
+
+            font.draw(
+                &mut gfx,
+                format!("ws: {}", last_ws_message).as_str(),
+                Color::GREEN,
+                Vector::new(10.0, 30.0),
+            )?;
+
             gfx.present(&window)?;
         }
     }
 }
-
-
-// #[tokio::main]
-// async fn main() {
-//     // GET /hello/warp => 200 OK with body "Hello, warp!"
-//     let hello = warp::path!("hello" / String)
-//         .map(|name| format!("Hello, {}!", name));
-//
-//     warp::serve(hello)
-//         .run(([127, 0, 0, 1], 3030))
-//         .await;
-// }
