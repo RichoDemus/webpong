@@ -1,29 +1,53 @@
 use futures_util::{SinkExt, StreamExt};
 use tokio::time::Duration;
-use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
+use tokio_tungstenite::{connect_async, tungstenite::protocol::Message, WebSocketStream};
 use url::Url;
 use tokio::runtime::Runtime;
 use tokio::task::JoinHandle;
 use futures::channel::mpsc::{Receiver, Sender};
+use crate::event_stream_mutex::{EventStream};
+use futures::stream::{SplitSink, SplitStream};
+
+
+use tokio_tungstenite::tungstenite::client::AutoStream;
+use tokio::net::TcpStream;
+
+use quicksilver::log::warn;
+use crate::ws_event::WsEvent;
 
 pub struct Websocket {
-    runtime: Runtime,
-    pub receiver: Receiver<String>,
+    pub event_stream: EventStream,
+    write:  SplitSink<WebSocketStream<tokio::net::TcpStream>, tokio_tungstenite::tungstenite::Message>
 }
 
-pub fn start_ws_client() -> Websocket {
-    let runtime = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap();
+impl Websocket {
+    pub async fn open(url: &str) -> Self {
+        let url = Url::parse(url).unwrap();
+        let (ws_stream, _) = connect_async(url).await.expect("Failed to connect");
+        let (mut write, mut read)= ws_stream.split();
 
-    let (mut tx, mut rx) = futures::channel::mpsc::channel::<String>(100);
-    runtime
-        .spawn(start(tx));
+        let event_stream = EventStream::new();
 
-    Websocket {
-        runtime,
-        receiver: rx,
+        event_stream.buffer.lock().expect("expected obtain lock").push(WsEvent::Opened);
+
+        let mut buffer_clone = event_stream.buffer.clone();
+        tokio::spawn(async move {
+            while let Some(message) = read.next().await {
+                let msg = message.expect("expected a message");
+                let str = msg.to_string();
+                buffer_clone.lock().expect("expected lock").push(WsEvent::Message(str));
+            }
+        });
+
+        Websocket {
+            event_stream,
+            write,
+        }
+    }
+
+    pub async fn send(&mut self, str: &str) {
+        self.write.send(Message::text(str.clone())).await;
+        // self.write.send(Message::text(str)).await;
     }
 }
 

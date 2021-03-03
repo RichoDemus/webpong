@@ -2,7 +2,7 @@ use futures_util::future::poll_fn;
 use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::future::Future;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::task::{Poll, Waker};
 use wasm_bindgen::prelude::*;
 use crate::ws_event::WsEvent;
@@ -26,13 +26,13 @@ extern "C" {
 /// [`Event`]: Event
 /// [`run`]: crate::run()
 pub struct EventStream {
-    buffer: Arc<RefCell<EventBuffer>>,
+    pub buffer: Arc<Mutex<EventBuffer>>,
 }
 
 impl EventStream {
     pub(crate) fn new() -> EventStream {
         EventStream {
-            buffer: Arc::new(RefCell::new(EventBuffer {
+            buffer: Arc::new(Mutex::new(EventBuffer {
                 events: VecDeque::new(),
                 waker: None,
                 ready: false,
@@ -40,9 +40,9 @@ impl EventStream {
         }
     }
 
-    pub(crate) fn buffer(&self) -> Arc<RefCell<EventBuffer>> {
-        self.buffer.clone()
-    }
+    // pub(crate) fn buffer(&self) -> Arc<Mutex<EventBuffer>> {
+    //     self.buffer.clone().lock()
+    // }
 
     /// Returns a future that will provide the next [`Event`], or None if the events are exhausted
     ///
@@ -54,7 +54,8 @@ impl EventStream {
     /// [`Event`]: Event
     pub fn next_event<'a>(&'a mut self) -> impl 'a + Future<Output = Option<WsEvent>> {
         poll_fn(move |cx| {
-            let mut buffer = self.buffer.borrow_mut();
+            let buffer = self.buffer.clone();
+            let mut buffer = buffer.lock().expect("expected to obtain lock");
             let option = buffer.events.pop_front();
             // console_log!("popped {:?}, buffer ready?: {}", option, buffer.ready);
             match option {
@@ -74,7 +75,7 @@ impl EventStream {
     }
 }
 
-pub(crate) struct EventBuffer {
+pub struct EventBuffer {
     events: VecDeque<WsEvent>,
     waker: Option<Waker>,
     ready: bool,

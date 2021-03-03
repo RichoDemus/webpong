@@ -9,7 +9,8 @@ use futures::StreamExt;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
 use web_sys::{ErrorEvent, MessageEvent, WebSocket};
-use crate::event_stream::{EventStream, WsEvent};
+use crate::event_stream::{EventStream};
+use crate::ws_event::WsEvent;
 
 // wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 

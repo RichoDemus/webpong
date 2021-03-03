@@ -7,13 +7,14 @@ use warp::{Filter};
 use futures_util::{StreamExt, FutureExt, SinkExt};
 use tokio::time::Duration;
 
-pub fn start_ws_server() {
-    println!("tokio");
-    tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(start())
+pub async fn start_ws_server() {
+    start().await;
+    // println!("tokio");
+    // tokio::runtime::Builder::new_current_thread()
+    //     .enable_all()
+    //     .build()
+    //     .unwrap()
+    //     .block_on(start())
 }
 
 
@@ -56,5 +57,6 @@ async fn start() {
             })
         });
 
+    println!("Starting warp...");
     warp::serve(routes).run(([127, 0, 0, 1], 8080)).await;
 }
