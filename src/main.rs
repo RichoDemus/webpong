@@ -30,6 +30,7 @@ use quicksilver::graphics::VectorFont;
 use crate::ws_client::Websocket;
 use crate::ws_event::WsEvent;
 use quicksilver::blinds::Key;
+use quicksilver::input::Event;
 
 #[cfg(target_arch = "wasm32")]
 macro_rules! console_log {
@@ -126,7 +127,17 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
 
     loop {
         // warn!("loop...");
-        while let Some(_) = input.next_event().await {}
+        while let Some(evt) = input.next_event().await {
+            match evt {
+                Event::KeyboardInput(key) => match key.key() {
+                    Key::P => if key.is_down() {
+                        simple_pong.toggle_pause();
+                    }
+                    _ => (),
+                }
+                _ => (),
+            }
+        }
 
         // #[cfg(target_arch = "wasm32")]
         // while let Some(evt) = ws.event_stream.next_event().await {

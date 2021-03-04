@@ -7,6 +7,7 @@ pub struct SimplePong {
     left_paddle: Paddle,
     right_paddle: Paddle,
     ball: Ball,
+    paused: bool,
 }
 
 pub struct Ball {
@@ -51,10 +52,14 @@ impl SimplePong {
             left_paddle: Paddle::left(),
             right_paddle: Paddle::right(),
             ball: Ball::new(),
+            paused: true,
         }
     }
 
     pub fn tick(&mut self) {
+        if self.paused {
+            return;
+        }
         self.ball.position += self.ball.velocity.clone();
         if self.ball.position.x < 10. || self.ball.position.x > 1590. {
             self.ball.velocity = Vector2::new(0.,0.);
@@ -77,6 +82,10 @@ impl SimplePong {
             self.ball.velocity.x *=-1.;
         }
 
+    }
+
+    pub fn toggle_pause(&mut self) {
+        self.paused = !self.paused;
     }
 
     pub fn move_up(&mut self) {
