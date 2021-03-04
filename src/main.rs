@@ -8,6 +8,8 @@ mod ws_client_wasm_two;
 pub mod event_stream;
 pub mod event_stream_mutex;
 pub mod ws_event;
+mod simple_pong;
+mod draw;
 // mod ws_client_wasm_stream;
 
 use std::env;
@@ -27,6 +29,7 @@ use quicksilver::graphics::VectorFont;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::ws_client::Websocket;
 use crate::ws_event::WsEvent;
+use quicksilver::blinds::Key;
 
 #[cfg(target_arch = "wasm32")]
 macro_rules! console_log {
@@ -58,6 +61,7 @@ async fn main() {
     run(
         Settings {
             title: "Square Example",
+            size: Vector::new(1600., 800.),
             ..Settings::default()
         },
         app,
@@ -107,6 +111,8 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
     let mut ws: Websocket = ws_client_wasm_two::Websocket::open("ws://localhost:8080/echo").await;
     // let mut ws: Websocket = ws_client_wasm_stream::start_ws_client().await;
 
+    let mut simple_pong = simple_pong::SimplePong::new();
+
     let mut update_timer = Timer::time_per_second(30.0);
     let mut draw_timer = Timer::time_per_second(60.0);
 
@@ -150,13 +156,21 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         }
 
         while update_timer.tick() {
-            rect.pos.x += 5.0;
+            if input.key_down(Key::W) {
+                simple_pong.move_up();
+            }
+            if input.key_down(Key::S) {
+                simple_pong.move_down();
+            }
+            simple_pong.tick();
         }
 
         if draw_timer.exhaust().is_some() {
-            gfx.clear(Color::WHITE);
-            gfx.fill_rect(&rect, Color::BLUE);
-            gfx.stroke_rect(&rect, Color::RED);
+            gfx.clear(Color::BLACK);
+
+            let (left_paddle, right_paddle, ball) = simple_pong.get_drawables();
+
+            draw::draw(&mut gfx, left_paddle, right_paddle, ball);
 
             font.draw(
                 &mut gfx,
