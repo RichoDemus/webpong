@@ -2,7 +2,10 @@ use nalgebra::{Point2, Vector2, Isometry2};
 use ncollide2d::shape::{Cuboid};
 use ncollide2d::{shape, query};
 use ncollide2d::query::Proximity;
+#[cfg(not(target_arch = "wasm32"))]
 use log::*;
+#[cfg(target_arch = "wasm32")]
+use quicksilver::log::*;
 
 pub struct SimplePong {
     left_paddle: Paddle,
