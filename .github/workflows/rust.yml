@@ -39,3 +39,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages # The branch the action should deploy to.
           FOLDER: target/distribution # The folder the action should deploy.
+
+  build-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: docker build
+        run: docker build -t richodemus/webpong .
+     - name: Push to Docker Hub
+       uses: docker/build-push-action@v1
+       with:
+         username: ${{ secrets.DOCKER_USERNAME }}
+         password: ${{ secrets.DOCKER_PASSWORD }}
+         repository: richodemus/webpong
+         tag_with_ref: true
+
