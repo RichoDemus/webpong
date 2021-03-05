@@ -10,6 +10,11 @@ pub mod event_stream_mutex;
 pub mod ws_event;
 mod simple_pong;
 mod draw;
+mod websocket_test;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod ws_server2;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod event_stream_mutex_client;
 // mod ws_client_wasm_stream;
 
 use std::env;

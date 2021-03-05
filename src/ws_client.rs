@@ -14,6 +14,7 @@ use tokio::net::TcpStream;
 
 use quicksilver::log::warn;
 use crate::ws_event::WsEvent;
+use tokio_tungstenite::tungstenite::Error;
 
 pub struct Websocket {
     pub event_stream: EventStream,
@@ -33,9 +34,13 @@ impl Websocket {
         let mut buffer_clone = event_stream.buffer.clone();
         tokio::spawn(async move {
             while let Some(message) = read.next().await {
-                let msg = message.expect("expected a message");
-                let str = msg.to_string();
-                buffer_clone.lock().expect("expected lock").push(WsEvent::Message(str));
+                match message {
+                    Ok(msg) => {
+                        let str = msg.to_string();
+                        buffer_clone.lock().expect("expected lock").push(WsEvent::Message(str));
+                    },
+                    Err(e) => log::info!("ws recv error: {:?}", e),
+                };
             }
         });
 
@@ -47,7 +52,10 @@ impl Websocket {
 
     pub async fn send(&mut self, str: &str) {
         self.write.send(Message::text(str.clone())).await;
-        // self.write.send(Message::text(str)).await;
+    }
+
+    pub async fn close(&mut self) {
+        self.write.close().await;
     }
 }
 
