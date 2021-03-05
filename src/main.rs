@@ -16,11 +16,13 @@ pub mod ws_server2;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod event_stream_mutex_client;
 // mod ws_client_wasm_stream;
+#[cfg(not(target_arch = "wasm32"))]
+use log::*;
 
 use std::env;
 
 use quicksilver::{geom::{Rectangle, Vector}, Graphics, graphics::Color, Input, Result, run, Settings, Window, Timer};
-use quicksilver::log::warn;
+
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -29,13 +31,14 @@ use crate::ws_client_wasm_two::Websocket;
 // use crate::ws_client_wasm_stream::Websocket;
 use std::sync::mpsc::TryRecvError;
 use futures::StreamExt;
-use web_sys::console::warn;
 use quicksilver::graphics::VectorFont;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::ws_client::Websocket;
 use crate::ws_event::WsEvent;
 use quicksilver::blinds::Key;
 use quicksilver::input::Event;
+use std::time::{Duration, Instant};
+use crate::simple_pong::SimplePong;
 
 #[cfg(target_arch = "wasm32")]
 macro_rules! console_log {
@@ -50,16 +53,21 @@ extern "C" {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-#[tokio::main]
+#[tokio::main(flavor = "multi_thread", worker_threads = 10)]
 #[cfg(not(target_arch = "wasm32"))]
 async fn main() {
 
     let args: Vec<String> = env::args().collect();
 
+    #[cfg(not(target_arch = "wasm32"))]
     if let Some(arg) = args.get(1) {
         if arg.eq("--server") {
-            #[cfg(not(target_arch = "wasm32"))]
-                ws_server::start_ws_server().await;
+
+            // #[cfg(not(target_arch = "wasm32"))]
+            //     let ws_server = ws_server::WsServer::new();
+
+            server_logic().await;
+
             return;
         }
     }
@@ -68,6 +76,7 @@ async fn main() {
         Settings {
             title: "Square Example",
             size: Vector::new(1600., 800.),
+            log_level: Level::Info,
             ..Settings::default()
         },
         app,
@@ -96,21 +105,56 @@ fn main() {
     );
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+async fn server_logic() {
+    let _ = env_logger::builder()
+        .filter_module("webpong", log::LevelFilter::Info)
+        .try_init();
+    let mut ws_server = ws_server2::WebsocketServer::start().await.expect("start ws server");
+    let time_between_ticks = Duration::from_secs_f32(1.0 / 10.);
+    let start = Instant::now();
 
-// #[cfg(target_arch = "wasm32")]
-// fn main() {
-//     run(
-//         Settings {
-//             title: "Square Example",
-//             ..Settings::default()
-//         },
-//         app,
-//     );
-// }
+    let mut players = vec![];
+
+    let mut simple_pong = SimplePong::new();
+    // simple_pong.toggle_pause();
+
+    let mut next_tick = start + time_between_ticks;
+    loop {
+        while let Some(client) = ws_server.event_stream.next_event().await {
+            players.push(client);
+        }
+
+        let mut messages_to_send = vec![];
+        for (i, player) in players.iter_mut().enumerate() {
+            while let Some(msg) = player.event_stream.next_event().await {
+                if let WsEvent::Message(msg) = msg {
+                    log::info!("Got message from client {}: {:?}", i, msg);
+                    messages_to_send.push(format!("{} {}", i, msg));
+                }
+            }
+        }
+        for msg in messages_to_send {
+            for player in &mut players {
+                player.send(msg.as_str()).await;
+            }
+        }
+
+        simple_pong.tick();
+
+        // log::info!("{:?}", simple_pong.get_drawables());
+
+        next_tick = next_tick + time_between_ticks;
+        while Instant::now() < next_tick {
+            tokio::time::sleep(tokio::time::Duration::from_millis(1));
+        }
+    }
+}
+
 
 async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
     #[cfg(not(target_arch = "wasm32"))]
-    let mut ws: Websocket = ws_client::Websocket::open("ws://localhost:8080/echo").await;
+    let mut ws: Websocket = ws_client::Websocket::open("ws://localhost:8080").await;
     #[cfg(target_arch = "wasm32")]
     console_error_panic_hook::set_once();
     #[cfg(target_arch = "wasm32")]
@@ -119,7 +163,7 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
 
     let mut simple_pong = simple_pong::SimplePong::new();
 
-    let mut update_timer = Timer::time_per_second(30.0);
+    let mut update_timer = Timer::time_per_second(60.0);
     let mut draw_timer = Timer::time_per_second(60.0);
 
 
@@ -130,6 +174,9 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
 
     let mut last_ws_message = String::new();
 
+    let mut is_w_pressed = false;
+    let mut is_s_pressed = false;
+
     loop {
         // warn!("loop...");
         while let Some(evt) = input.next_event().await {
@@ -137,7 +184,37 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                 Event::KeyboardInput(key) => match key.key() {
                     Key::P => if key.is_down() {
                         simple_pong.toggle_pause();
-                    }
+                    },
+                    Key::W => {
+                        if !key.is_down() {
+                            is_w_pressed = false;
+                            #[cfg(not(target_arch = "wasm32"))]
+                            ws.send("not up").await;
+                            #[cfg(target_arch = "wasm32")]
+                            ws.send("not up");
+                        } else if key.is_down() && !is_w_pressed {
+                            is_w_pressed = true;
+                            #[cfg(not(target_arch = "wasm32"))]
+                            ws.send("up").await;
+                            #[cfg(target_arch = "wasm32")]
+                            ws.send("up");
+                        }
+                    },
+                    Key::S => {
+                        if !key.is_down() {
+                            is_s_pressed = false;
+                            #[cfg(not(target_arch = "wasm32"))]
+                            ws.send("not down").await;
+                            #[cfg(target_arch = "wasm32")]
+                            ws.send("not down");
+                        } else if key.is_down() && !is_s_pressed {
+                            is_s_pressed = true;
+                            #[cfg(not(target_arch = "wasm32"))]
+                            ws.send("down").await;
+                            #[cfg(target_arch = "wasm32")]
+                            ws.send("down");
+                        }
+                    },
                     _ => (),
                 }
                 _ => (),
@@ -159,12 +236,23 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                     // ws.send("1");
                 }
                 WsEvent::Message(msg) => {
+                    // i up
+                    // i not up
+                    // i down
+                    // i not down
+                    let left_paddle = msg.contains("0") ;
+                    let stop_moving = msg.contains("not");
+                    let up = msg.contains("up");
+
+                    simple_pong.set_paddle_state(left_paddle, stop_moving, up);
+
+                    // info!("inc: {:?}", msg);
                     // warn!("main: msg: {:?}", msg);
-                    last_ws_message = msg.clone();
-                    #[cfg(not(target_arch = "wasm32"))]
-                    ws.send(msg.as_str()).await;
-                    #[cfg(target_arch = "wasm32")]
-                    ws.send(msg.as_str());
+                    // last_ws_message = msg.clone();
+                    // #[cfg(not(target_arch = "wasm32"))]
+                    // ws.send(msg.as_str()).await;
+                    // #[cfg(target_arch = "wasm32")]
+                    // ws.send(msg.as_str());
                 }
                 WsEvent::Error(_) => {}
                 WsEvent::Closed => (),
@@ -173,10 +261,13 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
 
         while update_timer.tick() {
             if input.key_down(Key::W) {
-                simple_pong.move_up();
+                // simple_pong.move_up();
+                // ws.send("move up").await;
+                // ws.send("move up").await;
             }
             if input.key_down(Key::S) {
-                simple_pong.move_down();
+                // simple_pong.move_down();
+                // ws.send("move down");
             }
             simple_pong.tick();
         }
