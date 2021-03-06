@@ -1,7 +1,7 @@
 FROM rust as build
 
 # todo make slimmer server builds without all these libs
-RUN apt-get update && apt-get -y install libssl-dev libudev-dev zlib1g-dev libasound2-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get -y install libudev-dev zlib1g-dev libasound2-dev && rm -rf /var/lib/apt/lists/*
 
 COPY ./ ./
 
@@ -15,6 +15,8 @@ RUN cp target/release/webpong /build-out/
 
 # Ubuntu 18.04
 FROM debian
+# todo make slimmer server builds without all these libs
+RUN apt-get update && apt-get -y install libssl-dev && rm -rf /var/lib/apt/lists/*
 
 #ENV DEBIAN_FRONTEND=noninteractive
 #RUN apt-get update && apt-get -y install ca-certificates libssl-dev && rm -rf /var/lib/apt/lists/*
