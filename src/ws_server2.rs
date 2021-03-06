@@ -100,7 +100,6 @@ impl WebsocketClient {
                     }
                     Err(e) => {
                         info!("websocket client error: {:?}", e);
-                        buffer.lock().expect("client lock").push(WsEvent::Closed);
                         break;
                     }
                 }
