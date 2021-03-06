@@ -107,6 +107,7 @@ impl WebsocketClient {
                 tokio::time::sleep(Duration::from_millis(100));
             }
             info!("closing socket...");
+            buffer.lock().expect("client lock").push(WsEvent::Closed);
         });
 
         let websocket_client = WebsocketClient {
