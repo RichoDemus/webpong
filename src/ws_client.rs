@@ -18,7 +18,7 @@ use tokio_tungstenite::tungstenite::Error;
 
 pub struct Websocket {
     pub event_stream: EventStream,
-    write:  SplitSink<WebSocketStream<tokio::net::TcpStream>, tokio_tungstenite::tungstenite::Message>
+    write:  SplitSink<WebSocketStream<tokio_tungstenite::stream::Stream<tokio::net::TcpStream, tokio_native_tls::TlsStream<tokio::net::TcpStream>>>, tokio_tungstenite::tungstenite::Message>,
 }
 
 impl Websocket {

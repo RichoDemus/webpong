@@ -7,7 +7,7 @@ pub fn draw(gfx: &mut Graphics, left_paddle: f64, right_paddle: f64, ball: Point
     let left_paddle = Rectangle::new(Vector::new(20.0, left_paddle as f32 - 10.), Vector::new(10.0, 100.));
     gfx.fill_rect(&left_paddle, Color::WHITE);
 
-    let right_paddle = Rectangle::new(Vector::new(1570.0, right_paddle as f32 - 10.), Vector::new(10.0, 100.));
+    let right_paddle = Rectangle::new(Vector::new(770.0, right_paddle as f32 - 10.), Vector::new(10.0, 100.));
     gfx.fill_rect(&right_paddle, Color::WHITE);
 
     let position = Vector::new(

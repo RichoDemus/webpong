@@ -75,7 +75,7 @@ async fn main() {
     run(
         Settings {
             title: "Square Example",
-            size: Vector::new(1600., 800.),
+            size: Vector::new(800., 600.),
             log_level: Level::Info,
             ..Settings::default()
         },
@@ -153,12 +153,14 @@ async fn server_logic() {
 
 
 async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
+    let ws_url = "wss://webpong.richodemus.com";
     #[cfg(not(target_arch = "wasm32"))]
-    let mut ws: Websocket = ws_client::Websocket::open("ws://localhost:8080").await;
+    // let mut ws: Websocket = ws_client::Websocket::open("ws://localhost:8080").await;
+    let mut ws: Websocket = ws_client::Websocket::open(ws_url).await;
     #[cfg(target_arch = "wasm32")]
     console_error_panic_hook::set_once();
     #[cfg(target_arch = "wasm32")]
-    let mut ws: Websocket = ws_client_wasm_two::Websocket::open("ws://localhost:8080/echo").await;
+    let mut ws: Websocket = ws_client_wasm_two::Websocket::open(ws_url).await;
     // let mut ws: Websocket = ws_client_wasm_stream::start_ws_client().await;
 
     let mut simple_pong = simple_pong::SimplePong::new();

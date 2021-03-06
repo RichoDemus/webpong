@@ -52,7 +52,7 @@ impl Paddle {
     }
     fn right() -> Self {
         Paddle {
-            position: Point2::new(1570., 50.),
+            position: Point2::new(770., 50.),
             shape: Cuboid::new(Vector2::new(10.,100.)),
             state: PaddleState::Still,
         }
@@ -91,10 +91,10 @@ impl SimplePong {
         }
 
         self.ball.position += self.ball.velocity.clone();
-        if self.ball.position.x < 10. || self.ball.position.x > 1590. {
+        if self.ball.position.x < 10. || self.ball.position.x > 790. {
             self.ball.velocity = Vector2::new(0.,0.);
         }
-        if self.ball.position.y < 10. || self.ball.position.y > 790. {
+        if self.ball.position.y < 10. || self.ball.position.y > 590. {
             self.ball.velocity.y *=-1.;
         }
 

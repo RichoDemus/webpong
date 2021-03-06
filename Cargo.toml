@@ -19,7 +19,8 @@ warp = "0.3"
 url = "2.2.1"
 futures-util = "*" #todo try to lock
 tungstenite = "0.13.0"
-tokio-tungstenite = "*"
+tokio-tungstenite = {version="*", features = ["native-tls", "tls"]}
+tokio-native-tls = "0.3.0"
 log = "0.4.14"
 env_logger = "0.8.3"
 cfg-if = "1.0.0"
