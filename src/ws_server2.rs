@@ -24,7 +24,7 @@ pub struct WebsocketServer {
 impl WebsocketServer {
     pub async fn start() -> std::result::Result<Self, Box<dyn std::error::Error>> {
         // let ws_streams = Arc::new(Mutex::new(vec![]));
-        let addr = "127.0.0.1:8080";
+        let addr = "0.0.0.0:8080";
         let listener = TcpListener::bind(&addr).await?;
         info!("Listening on: {}", addr);
 
