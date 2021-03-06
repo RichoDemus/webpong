@@ -165,7 +165,7 @@ async fn server_logic() {
 
         next_tick = next_tick + time_between_ticks;
         while Instant::now() < next_tick {
-            tokio::time::sleep(tokio::time::Duration::from_millis(1));
+            tokio::time::sleep(tokio::time::Duration::from_millis(1)).await;
         }
     }
 }
