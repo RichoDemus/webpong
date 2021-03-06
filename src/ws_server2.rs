@@ -86,12 +86,21 @@ impl WebsocketClient {
         tokio::spawn(async move {
             while let Some(msg) = receive.next().await {
                 info!("Client received: {:?}", msg);
-                let msg = msg.expect("message received unwrap");
                 match msg {
-                    Message::Text(msg) => {
-                        buffer.lock().expect("client lock").push(WsEvent::Message(msg));
+                    Ok(msg) => {
+                        match msg {
+                            Message::Text(msg) => {
+                                buffer.lock().expect("client lock").push(WsEvent::Message(msg));
+                            }
+                            _ => {
+                                break;
+                            }
+                        }
+
                     }
-                    _ => {
+                    Err(e) => {
+                        info!("websocket client error: {:?}", e);
+                        buffer.lock().expect("client lock").push(WsEvent::Closed);
                         break;
                     }
                 }

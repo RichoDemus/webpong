@@ -126,14 +126,33 @@ async fn server_logic() {
         }
 
         let mut messages_to_send = vec![];
+        let mut indexes_to_remove = vec![];
         for (i, player) in players.iter_mut().enumerate() {
             while let Some(msg) = player.event_stream.next_event().await {
-                if let WsEvent::Message(msg) = msg {
-                    log::info!("Got message from client {}: {:?}", i, msg);
-                    messages_to_send.push(format!("{} {}", i, msg));
+                match msg {
+                    WsEvent::Message(msg) => {
+                        log::info!("Got message from client {}: {:?}", i, msg);
+                        messages_to_send.push(format!("{} {}", i, msg));
+                    },
+                    WsEvent::Closed => {
+                        info!("received error for {}, closing", i);
+                        indexes_to_remove.push(i);
+                    }
+                    _ => {}
                 }
             }
         }
+
+        {
+            // remove disconnected players
+            indexes_to_remove.sort();
+            indexes_to_remove.reverse();
+            for index in indexes_to_remove {
+                players.remove(index);
+                info!("Removed player {}", index);
+            }
+        }
+
         for msg in messages_to_send {
             for player in &mut players {
                 player.send(msg.as_str()).await;
@@ -153,6 +172,9 @@ async fn server_logic() {
 
 
 async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
+    #[cfg(debug_assertions)]
+    let ws_url = "ws://localhost:8080";
+    #[cfg(not(debug_assertions))]
     let ws_url = "wss://webpong.richodemus.com";
     #[cfg(not(target_arch = "wasm32"))]
     // let mut ws: Websocket = ws_client::Websocket::open("ws://localhost:8080").await;
@@ -242,7 +264,10 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                     // i not up
                     // i down
                     // i not down
-                    let left_paddle = msg.contains("0") ;
+                    if !msg.contains("0") && !msg.contains("1") {
+                        continue;
+                    }
+                    let left_paddle = msg.contains("0");
                     let stop_moving = msg.contains("not");
                     let up = msg.contains("up");
 
