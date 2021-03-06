@@ -148,8 +148,10 @@ async fn server_logic() {
             indexes_to_remove.sort();
             indexes_to_remove.reverse();
             for index in indexes_to_remove {
-                players.remove(index);
-                info!("Removed player {}", index);
+                if let Some(_) = players.get(index) {
+                    players.remove(index);
+                    info!("Removed player {}", index);
+                }
             }
         }
 
