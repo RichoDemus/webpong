@@ -43,12 +43,18 @@ impl WebsocketServer {
                 futures::pin_mut!(future);
                 match futures::poll!(future) {
                     Poll::Ready(Ok((stream, _addr))) => {
-                        let peer = stream.peer_addr().expect("connected streams should have a peer address");
-                        info!("New client: {:?}", peer);
-                        let ws_stream = accept_async(stream).await.expect("failed to accept");
+                        match stream.peer_addr() {
+                            Ok(peer) => info!("New client: {:?}", peer),
+                            Err(e) => info!("failed to obtain peer: {:?}", e),
+                        }
+                        match accept_async(stream).await {
+                            Ok(ws_stream) => {
+                                let client = WebsocketClient::from(ws_stream);
+                                buffer.lock().expect("lock to send a new client").push(client);
+                            }
+                            Err(e) => info!("Failed to upgrade websocket: {:?}", e),
+                        }
 
-                        let client = WebsocketClient::from(ws_stream);
-                        buffer.lock().expect("lock to send a new client").push(client);
                     }
                     _ => (),//info!("poll result: {:?}", o),
                 }
