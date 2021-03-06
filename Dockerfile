@@ -1,6 +1,7 @@
 FROM rust as build
 
-RUN apt-get update && apt-get -y install libudev-dev zlib1g-dev libasound2-dev && rm -rf /var/lib/apt/lists/*
+# todo make slimmer server builds without all these libs
+RUN apt-get update && apt-get -y install libssl-dev libudev-dev zlib1g-dev libasound2-dev && rm -rf /var/lib/apt/lists/*
 
 COPY ./ ./
 
