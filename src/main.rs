@@ -16,7 +16,7 @@ use crate::simple_pong::SimplePong;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::ws_client::Websocket;
 #[cfg(target_arch = "wasm32")]
-use crate::ws_client_wasm_two::Websocket;
+use crate::ws_client_wasm::Websocket;
 use crate::ws_event::WsEvent;
 
 mod draw;
@@ -26,7 +26,7 @@ mod websocket_test;
 #[cfg(not(target_arch = "wasm32"))]
 mod ws_client;
 #[cfg(target_arch = "wasm32")]
-mod ws_client_wasm_two;
+mod ws_client_wasm;
 pub mod ws_event;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod ws_server;
@@ -153,7 +153,7 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
     #[cfg(target_arch = "wasm32")]
     console_error_panic_hook::set_once();
     #[cfg(target_arch = "wasm32")]
-    let mut ws: Websocket = ws_client_wasm_two::Websocket::open(ws_url).await;
+    let mut ws: Websocket = ws_client_wasm::Websocket::open(ws_url).await;
 
     let mut simple_pong = simple_pong::SimplePong::new();
 
