@@ -1,10 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use std::error::Error;
-
     use log::*;
-    use tokio::io::AsyncWriteExt;
-    use tokio::time::{Duration, Instant};
+    use tokio::time::Duration;
 
     use crate::ws_event::WsEvent;
     use crate::{ws_client, ws_server2};
@@ -19,7 +16,7 @@ mod tests {
         let ws_client_one = ws_client::Websocket::open("ws://localhost:8080");
         let ws_client_two = ws_client::Websocket::open("ws://localhost:8080");
 
-        let (server, mut second, mut third) =
+        let (server, client_one, client_two) =
             tokio::join!(ws_server, ws_client_one, ws_client_two,);
 
         let mut server = server?;
@@ -37,19 +34,20 @@ mod tests {
                                     ws_client.send(msg).await;
                                     tokio::time::sleep(Duration::from_millis(100)).await;
                                 }
-                                _ => (),
+                                WsEvent::Closed => break,
+                                m => warn!("Server received unexpected msg: {:?}", m),
                             }
-                            tokio::time::sleep(Duration::from_millis(100));
+                            tokio::time::sleep(Duration::from_millis(100)).await;
                         }
                     }
-                    info!("Listening to client done");
+                    info!("Server listening loop ending...");
                 });
-                tokio::time::sleep(Duration::from_millis(100));
+                tokio::time::sleep(Duration::from_millis(100)).await;
             }
-            server.close();
+            server.close().await;
         });
 
-        let futures = vec![second, third]
+        let client_futures = vec![client_one, client_two]
             .into_iter()
             .map(|mut ws| {
                 tokio::spawn(async move {
@@ -68,12 +66,14 @@ mod tests {
                         }
                         tokio::time::sleep(Duration::from_millis(100)).await;
                     }
+                    info!("Client listening loop ending...");
                     ws.close().await;
                 })
             })
             .collect::<Vec<_>>();
 
-        for future in futures {
+        info!("Waiting for futures...");
+        for future in client_futures {
             future.await.expect("future await failed");
         }
 

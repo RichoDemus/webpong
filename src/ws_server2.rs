@@ -60,13 +60,14 @@ impl WebsocketServer {
                 }
                 tokio::time::sleep(Duration::from_millis(100)).await;
             }
-            info!("Stopping websocket listening")
+            info!("Server no longer listening for new connections")
         });
 
         Ok(result)
     }
 
     pub async fn close(&mut self) {
+        info!("Starting to close server listening socket");
         *self.running.clone().lock().expect("running read lock") = false;
     }
 }
@@ -84,7 +85,7 @@ impl WebsocketClient {
         let buffer = event_stream.buffer.clone();
         tokio::spawn(async move {
             while let Some(msg) = receive.next().await {
-                info!("Client received: {:?}", msg);
+                info!("Received {:?} from client", msg);
                 match msg {
                     Ok(msg) => match msg {
                         Message::Text(msg) => {
