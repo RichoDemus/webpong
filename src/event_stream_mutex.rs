@@ -42,24 +42,15 @@ impl EventStream {
     /// Future even if the events are ignored.
     ///
     /// [`Event`]: Event
-    pub fn next_event<'a>(&'a mut self) -> impl 'a + Future<Output = Option<WsEvent>> {
+    pub fn next_event(&mut self) -> impl Future<Output = Option<WsEvent>> {
+        let buffer = self.buffer.clone();
         poll_fn(move |_cx| {
-            let buffer = self.buffer.clone();
             let mut buffer = buffer.lock().expect("expected to obtain lock");
             let option = buffer.events.pop_front();
             // console_log!("popped {:?}, buffer ready?: {}", option, buffer.ready);
             match option {
                 Some(event) => Poll::Ready(Some(event)),
-                None => {
-                    Poll::Ready(None)
-                    // if buffer.ready {
-                    //     buffer.ready = false;
-                    //     Poll::Ready(None)
-                    // } else {
-                    //     buffer.waker = Some(cx.waker().clone());
-                    //     Poll::Pending
-                    // }
-                }
+                None => Poll::Ready(None),
             }
         })
     }
