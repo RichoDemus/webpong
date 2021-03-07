@@ -1,50 +1,50 @@
+use std::env;
 #[cfg(not(target_arch = "wasm32"))]
-mod ws_client;
+use std::time::{Duration, Instant};
+
+#[cfg(not(target_arch = "wasm32"))]
+use log::*;
+use quicksilver::blinds::Key;
+use quicksilver::graphics::VectorFont;
+use quicksilver::input::Event;
+use quicksilver::{
+    geom::Vector, graphics::Color, run, Graphics, Input, Result, Settings, Timer, Window,
+};
+
+#[cfg(not(target_arch = "wasm32"))]
+use crate::simple_pong::SimplePong;
+#[cfg(not(target_arch = "wasm32"))]
+use crate::ws_client::Websocket;
 #[cfg(target_arch = "wasm32")]
-mod ws_client_wasm_two;
+use crate::ws_client_wasm_two::Websocket;
+use crate::ws_event::WsEvent;
+
+mod draw;
 #[cfg(target_arch = "wasm32")]
 pub mod event_stream;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod event_stream_mutex;
-pub mod ws_event;
-mod simple_pong;
-mod draw;
-mod websocket_test;
-#[cfg(not(target_arch = "wasm32"))]
-pub mod ws_server2;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod event_stream_mutex_client;
+mod simple_pong;
+mod websocket_test;
 #[cfg(not(target_arch = "wasm32"))]
-use log::*;
-
-use std::env;
-
-use quicksilver::{geom::{Vector}, Graphics, graphics::Color, Input, Result, run, Settings, Window, Timer};
-
+mod ws_client;
 #[cfg(target_arch = "wasm32")]
-use crate::ws_client_wasm_two::Websocket;
-use quicksilver::graphics::VectorFont;
+mod ws_client_wasm_two;
+pub mod ws_event;
 #[cfg(not(target_arch = "wasm32"))]
-use crate::ws_client::Websocket;
-use crate::ws_event::WsEvent;
-use quicksilver::blinds::Key;
-use quicksilver::input::Event;
-#[cfg(not(target_arch = "wasm32"))]
-use std::time::{Duration, Instant};
-#[cfg(not(target_arch = "wasm32"))]
-use crate::simple_pong::SimplePong;
+pub mod ws_server2;
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main(flavor = "multi_thread", worker_threads = 10)]
 #[cfg(not(target_arch = "wasm32"))]
 async fn main() {
-
     let args: Vec<String> = env::args().collect();
 
     #[cfg(not(target_arch = "wasm32"))]
     if let Some(arg) = args.get(1) {
         if arg.eq("--server") {
-
             // #[cfg(not(target_arch = "wasm32"))]
             //     let ws_server = ws_server::WsServer::new();
 
@@ -67,7 +67,6 @@ async fn main() {
 
 #[cfg(target_arch = "wasm32")]
 fn main() {
-
     let args: Vec<String> = env::args().collect();
 
     if let Some(arg) = args.get(1) {
@@ -78,7 +77,7 @@ fn main() {
         }
     }
 
-        run(
+    run(
         Settings {
             title: "Square Example",
             ..Settings::default()
@@ -92,7 +91,9 @@ async fn server_logic() {
     let _ = env_logger::builder()
         .filter_module("webpong", log::LevelFilter::Info)
         .try_init();
-    let mut ws_server = ws_server2::WebsocketServer::start().await.expect("start ws server");
+    let mut ws_server = ws_server2::WebsocketServer::start()
+        .await
+        .expect("start ws server");
     let time_between_ticks = Duration::from_secs_f32(1.0 / 10.);
     let start = Instant::now();
 
@@ -115,7 +116,7 @@ async fn server_logic() {
                     WsEvent::Message(msg) => {
                         log::info!("Got message from client {}: {:?}", i, msg);
                         messages_to_send.push(format!("{} {}", i, msg));
-                    },
+                    }
                     WsEvent::Closed => {
                         info!("received error for {}, closing", i);
                         indexes_to_remove.push(i);
@@ -154,7 +155,6 @@ async fn server_logic() {
     }
 }
 
-
 async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
     #[cfg(debug_assertions)]
     let ws_url = "ws://localhost:8080";
@@ -174,7 +174,6 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
     let mut update_timer = Timer::time_per_second(60.0);
     let mut draw_timer = Timer::time_per_second(60.0);
 
-
     let ttf = VectorFont::from_slice(include_bytes!("BebasNeue-Regular.ttf"));
     let mut font = ttf.to_renderer(&gfx, 20.0)?;
 
@@ -188,9 +187,11 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         while let Some(evt) = input.next_event().await {
             match evt {
                 Event::KeyboardInput(key) => match key.key() {
-                    Key::P => if key.is_down() {
-                        simple_pong.toggle_pause();
-                    },
+                    Key::P => {
+                        if key.is_down() {
+                            simple_pong.toggle_pause();
+                        }
+                    }
                     Key::W => {
                         if !key.is_down() {
                             is_w_pressed = false;
@@ -205,7 +206,7 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                             #[cfg(target_arch = "wasm32")]
                             ws.send("up");
                         }
-                    },
+                    }
                     Key::S => {
                         if !key.is_down() {
                             is_s_pressed = false;
@@ -220,9 +221,9 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                             #[cfg(target_arch = "wasm32")]
                             ws.send("down");
                         }
-                    },
+                    }
                     _ => (),
-                }
+                },
                 _ => (),
             }
         }

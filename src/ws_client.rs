@@ -1,25 +1,37 @@
+use futures::stream::SplitSink;
 use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message, WebSocketStream};
 use url::Url;
-use crate::event_stream_mutex::{EventStream};
-use futures::stream::SplitSink;
 
+use crate::event_stream_mutex::EventStream;
 use crate::ws_event::WsEvent;
 
 pub struct Websocket {
     pub event_stream: EventStream,
-    write:  SplitSink<WebSocketStream<tokio_tungstenite::stream::Stream<tokio::net::TcpStream, tokio_native_tls::TlsStream<tokio::net::TcpStream>>>, tokio_tungstenite::tungstenite::Message>,
+    write: SplitSink<
+        WebSocketStream<
+            tokio_tungstenite::stream::Stream<
+                tokio::net::TcpStream,
+                tokio_native_tls::TlsStream<tokio::net::TcpStream>,
+            >,
+        >,
+        tokio_tungstenite::tungstenite::Message,
+    >,
 }
 
 impl Websocket {
     pub async fn open(url: &str) -> Self {
         let url = Url::parse(url).unwrap();
         let (ws_stream, _) = connect_async(url).await.expect("Failed to connect");
-        let (write, mut read)= ws_stream.split();
+        let (write, mut read) = ws_stream.split();
 
         let event_stream = EventStream::new();
 
-        event_stream.buffer.lock().expect("expected obtain lock").push(WsEvent::Opened);
+        event_stream
+            .buffer
+            .lock()
+            .expect("expected obtain lock")
+            .push(WsEvent::Opened);
 
         let buffer_clone = event_stream.buffer.clone();
         tokio::spawn(async move {
@@ -27,8 +39,11 @@ impl Websocket {
                 match message {
                     Ok(msg) => {
                         let str = msg.to_string();
-                        buffer_clone.lock().expect("expected lock").push(WsEvent::Message(str));
-                    },
+                        buffer_clone
+                            .lock()
+                            .expect("expected lock")
+                            .push(WsEvent::Message(str));
+                    }
                     Err(e) => log::info!("ws recv error: {:?}", e),
                 };
             }
@@ -41,7 +56,10 @@ impl Websocket {
     }
 
     pub async fn send(&mut self, str: &str) {
-        self.write.send(Message::text(str.clone())).await.expect("Websocket.send failed");
+        self.write
+            .send(Message::text(str.clone()))
+            .await
+            .expect("Websocket.send failed");
     }
 
     #[allow(dead_code)]

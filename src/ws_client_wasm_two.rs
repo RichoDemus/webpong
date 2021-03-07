@@ -1,10 +1,9 @@
-
-use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 use web_sys::{ErrorEvent, MessageEvent, WebSocket};
-use crate::event_stream::{EventStream};
-use crate::ws_event::WsEvent;
 
+use crate::event_stream::EventStream;
+use crate::ws_event::WsEvent;
 
 pub struct Websocket {
     pub event_stream: EventStream,
@@ -68,10 +67,7 @@ impl Websocket {
         }
 
         // console_log!("return from ws client");
-        Websocket {
-            event_stream,
-            ws,
-        }
+        Websocket { event_stream, ws }
     }
 
     pub fn send(&mut self, str: &str) {

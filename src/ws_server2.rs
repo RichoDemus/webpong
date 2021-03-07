@@ -1,15 +1,17 @@
-use futures_util::{SinkExt, StreamExt};
-use log::*;
-use std::time::Duration;
-use tokio::net::{TcpListener, TcpStream};
-use tokio_tungstenite::{accept_async, WebSocketStream};
-use tokio_tungstenite::tungstenite::Message;
 use std::sync::{Arc, Mutex};
 use std::task::Poll;
-use crate::event_stream_mutex::EventStream;
+use std::time::Duration;
+
 use futures::stream::SplitSink;
-use crate::ws_event::WsEvent;
+use futures_util::{SinkExt, StreamExt};
+use log::*;
+use tokio::net::{TcpListener, TcpStream};
+use tokio_tungstenite::tungstenite::Message;
+use tokio_tungstenite::{accept_async, WebSocketStream};
+
+use crate::event_stream_mutex::EventStream;
 use crate::event_stream_mutex_client;
+use crate::ws_event::WsEvent;
 
 pub struct WebsocketServer {
     pub running: Arc<Mutex<bool>>,
@@ -28,7 +30,7 @@ impl WebsocketServer {
         let buffer = event_stream.buffer.clone();
         let running = Arc::new(Mutex::new(true));
         // let streams = ws_streams.clone();
-        let result = WebsocketServer{
+        let result = WebsocketServer {
             running: running.clone(),
             // ws_streams,
             event_stream,
@@ -46,13 +48,15 @@ impl WebsocketServer {
                         match accept_async(stream).await {
                             Ok(ws_stream) => {
                                 let client = WebsocketClient::from(ws_stream);
-                                buffer.lock().expect("lock to send a new client").push(client);
+                                buffer
+                                    .lock()
+                                    .expect("lock to send a new client")
+                                    .push(client);
                             }
                             Err(e) => info!("Failed to upgrade websocket: {:?}", e),
                         }
-
                     }
-                    _ => (),//info!("poll result: {:?}", o),
+                    _ => (), //info!("poll result: {:?}", o),
                 }
                 tokio::time::sleep(Duration::from_millis(100)).await;
             }
@@ -66,7 +70,6 @@ impl WebsocketServer {
         *self.running.clone().lock().expect("running read lock") = false;
     }
 }
-
 
 pub struct WebsocketClient {
     pub event_stream: EventStream,
@@ -83,17 +86,17 @@ impl WebsocketClient {
             while let Some(msg) = receive.next().await {
                 info!("Client received: {:?}", msg);
                 match msg {
-                    Ok(msg) => {
-                        match msg {
-                            Message::Text(msg) => {
-                                buffer.lock().expect("client lock").push(WsEvent::Message(msg));
-                            }
-                            _ => {
-                                break;
-                            }
+                    Ok(msg) => match msg {
+                        Message::Text(msg) => {
+                            buffer
+                                .lock()
+                                .expect("client lock")
+                                .push(WsEvent::Message(msg));
                         }
-
-                    }
+                        _ => {
+                            break;
+                        }
+                    },
                     Err(e) => {
                         info!("websocket client error: {:?}", e);
                         break;
@@ -105,14 +108,14 @@ impl WebsocketClient {
             buffer.lock().expect("client lock").push(WsEvent::Closed);
         });
 
-        let websocket_client = WebsocketClient {
-            event_stream,
-            send
-        };
+        let websocket_client = WebsocketClient { event_stream, send };
         websocket_client
     }
 
-     pub async fn send(&mut self, msg: &str) {
-        self.send.send(Message::Text(msg.to_string())).await.expect("WebsocketClient.send failed");
+    pub async fn send(&mut self, msg: &str) {
+        self.send
+            .send(Message::Text(msg.to_string()))
+            .await
+            .expect("WebsocketClient.send failed");
     }
 }

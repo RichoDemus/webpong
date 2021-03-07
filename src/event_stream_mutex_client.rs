@@ -1,8 +1,10 @@
-use futures_util::future::poll_fn;
 use std::collections::VecDeque;
 use std::future::Future;
 use std::sync::{Arc, Mutex};
 use std::task::{Poll, Waker};
+
+use futures_util::future::poll_fn;
+
 use crate::ws_server2::WebsocketClient;
 
 /// The source of events for a `blinds` application
