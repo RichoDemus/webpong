@@ -9,14 +9,13 @@ use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{accept_async, WebSocketStream};
 
-use crate::event_stream_mutex::EventStream;
-use crate::event_stream_mutex_client;
+use crate::event_stream::EventStream;
 use crate::ws_event::WsEvent;
 
 pub struct WebsocketServer {
     pub running: Arc<Mutex<bool>>,
     // ws_streams: Arc<Mutex<Vec<WebSocketStream<TcpStream>>>>,
-    pub event_stream: event_stream_mutex_client::EventStream,
+    pub event_stream: EventStream<WebsocketClient>,
 }
 
 impl WebsocketServer {
@@ -26,8 +25,8 @@ impl WebsocketServer {
         let listener = TcpListener::bind(&addr).await?;
         info!("Listening on: {}", addr);
 
-        let event_stream = event_stream_mutex_client::EventStream::new();
-        let buffer = event_stream.buffer.clone();
+        let event_stream = EventStream::new();
+        let buffer = event_stream.buffer();
         let running = Arc::new(Mutex::new(true));
         // let streams = ws_streams.clone();
         let result = WebsocketServer {
@@ -51,7 +50,7 @@ impl WebsocketServer {
                                 buffer
                                     .lock()
                                     .expect("lock to send a new client")
-                                    .push(client);
+                                    .push_back(client);
                             }
                             Err(e) => info!("Failed to upgrade websocket: {:?}", e),
                         }
@@ -73,7 +72,7 @@ impl WebsocketServer {
 }
 
 pub struct WebsocketClient {
-    pub event_stream: EventStream,
+    pub event_stream: EventStream<WsEvent>,
     send: SplitSink<WebSocketStream<TcpStream>, Message>,
 }
 
@@ -82,7 +81,7 @@ impl WebsocketClient {
         let (send, mut receive) = ws.split();
         let event_stream = EventStream::new();
 
-        let buffer = event_stream.buffer.clone();
+        let buffer = event_stream.buffer().clone();
         tokio::spawn(async move {
             while let Some(msg) = receive.next().await {
                 info!("Received {:?} from client", msg);
@@ -92,7 +91,7 @@ impl WebsocketClient {
                             buffer
                                 .lock()
                                 .expect("client lock")
-                                .push(WsEvent::Message(msg));
+                                .push_back(WsEvent::Message(msg));
                         }
                         _ => {
                             break;
@@ -106,7 +105,10 @@ impl WebsocketClient {
                 tokio::time::sleep(Duration::from_millis(100)).await;
             }
             info!("closing socket...");
-            buffer.lock().expect("client lock").push(WsEvent::Closed);
+            buffer
+                .lock()
+                .expect("client lock")
+                .push_back(WsEvent::Closed);
         });
 
         let websocket_client = WebsocketClient { event_stream, send };

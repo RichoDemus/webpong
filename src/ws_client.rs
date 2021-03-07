@@ -3,11 +3,11 @@ use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message, WebSocketStream};
 use url::Url;
 
-use crate::event_stream_mutex::EventStream;
+use crate::event_stream::EventStream;
 use crate::ws_event::WsEvent;
 
 pub struct Websocket {
-    pub event_stream: EventStream,
+    pub event_stream: EventStream<WsEvent>,
     write: SplitSink<
         WebSocketStream<
             tokio_tungstenite::stream::Stream<
@@ -28,12 +28,12 @@ impl Websocket {
         let event_stream = EventStream::new();
 
         event_stream
-            .buffer
+            .buffer()
             .lock()
             .expect("expected obtain lock")
-            .push(WsEvent::Opened);
+            .push_back(WsEvent::Opened);
 
-        let buffer_clone = event_stream.buffer.clone();
+        let buffer_clone = event_stream.buffer().clone();
         tokio::spawn(async move {
             while let Some(message) = read.next().await {
                 match message {
@@ -42,7 +42,7 @@ impl Websocket {
                         buffer_clone
                             .lock()
                             .expect("expected lock")
-                            .push(WsEvent::Message(str));
+                            .push_back(WsEvent::Message(str));
                     }
                     Err(e) => log::info!("ws recv error: {:?}", e),
                 };
