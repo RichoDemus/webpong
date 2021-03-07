@@ -2,7 +2,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{ErrorEvent, MessageEvent, WebSocket};
 
-use crate::event_stream::EventStream;
+use crate::event_stream_mutex::EventStream;
 use crate::ws_event::WsEvent;
 
 pub struct Websocket {
@@ -20,10 +20,13 @@ impl Websocket {
 
         {
             // On Error
-            let buffer = event_stream.buffer();
+            let buffer = event_stream.buffer.clone();
             let onerror_callback = Closure::wrap(Box::new(move |e: ErrorEvent| {
                 // console_log!("onerror");
-                buffer.borrow_mut().push(WsEvent::Error(e.message().into()));
+                buffer
+                    .lock()
+                    .expect("aquire lock")
+                    .push(WsEvent::Error(e.message().into()));
             }) as Box<dyn FnMut(ErrorEvent)>);
             ws.set_onerror(Some(onerror_callback.as_ref().unchecked_ref()));
             onerror_callback.forget();
@@ -31,12 +34,15 @@ impl Websocket {
 
         {
             // On Message
-            let buffer = event_stream.buffer();
+            let buffer = event_stream.buffer.clone();
             let onmessage_callback = Closure::wrap(Box::new(move |e: MessageEvent| {
                 // console_log!("onmessage: {:?}", e);
                 if let Ok(txt) = e.data().dyn_into::<js_sys::JsString>() {
                     // console_log!("onmessage: {:?}", txt);
-                    buffer.borrow_mut().push(WsEvent::Message(txt.into()));
+                    buffer
+                        .lock()
+                        .expect("aquire lock")
+                        .push(WsEvent::Message(txt.into()));
                     // console_log!("after push");
                 }
             }) as Box<dyn FnMut(MessageEvent)>);
@@ -46,10 +52,10 @@ impl Websocket {
 
         {
             // on close
-            let buffer = event_stream.buffer();
+            let buffer = event_stream.buffer.clone();
             let onclose_callback = Closure::wrap(Box::new(move |_| {
                 // console_log!("onclose");
-                buffer.borrow_mut().push(WsEvent::Closed);
+                buffer.lock().expect("aquire lock").push(WsEvent::Closed);
             }) as Box<dyn FnMut(JsValue)>);
             ws.set_onclose(Some(onclose_callback.as_ref().unchecked_ref()));
             onclose_callback.forget();
@@ -57,10 +63,10 @@ impl Websocket {
 
         {
             // on open
-            let buffer = event_stream.buffer();
+            let buffer = event_stream.buffer.clone();
             let onopen_callback = Closure::wrap(Box::new(move |_| {
                 // console_log!("onopen");
-                buffer.borrow_mut().push(WsEvent::Opened);
+                buffer.lock().expect("aquire lock").push(WsEvent::Opened);
             }) as Box<dyn FnMut(JsValue)>);
             ws.set_onopen(Some(onopen_callback.as_ref().unchecked_ref()));
             onopen_callback.forget();

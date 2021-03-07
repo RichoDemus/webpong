@@ -20,9 +20,6 @@ use crate::ws_client_wasm_two::Websocket;
 use crate::ws_event::WsEvent;
 
 mod draw;
-#[cfg(target_arch = "wasm32")]
-pub mod event_stream;
-#[cfg(not(target_arch = "wasm32"))]
 pub mod event_stream_mutex;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod event_stream_mutex_client;
