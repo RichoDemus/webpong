@@ -1,15 +1,11 @@
 use futures_util::{SinkExt, StreamExt};
 use log::*;
-use std::{net::SocketAddr, time::Duration};
+use std::time::Duration;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::{accept_async, WebSocketStream};
-use tungstenite::{Result};
 use tokio_tungstenite::tungstenite::Message;
-use tungstenite::Error;
 use std::sync::{Arc, Mutex};
 use std::task::Poll;
-use std::sync::atomic::AtomicBool;
-use std::sync::atomic::Ordering::{Relaxed, Release, Acquire};
 use crate::event_stream_mutex::EventStream;
 use futures::stream::SplitSink;
 use crate::ws_event::WsEvent;
@@ -103,7 +99,7 @@ impl WebsocketClient {
                         break;
                     }
                 }
-                tokio::time::sleep(Duration::from_millis(100));
+                tokio::time::sleep(Duration::from_millis(100)).await;
             }
             info!("closing socket...");
             buffer.lock().expect("client lock").push(WsEvent::Closed);
@@ -117,6 +113,6 @@ impl WebsocketClient {
     }
 
      pub async fn send(&mut self, msg: &str) {
-        self.send.send(Message::Text(msg.to_string())).await;
+        self.send.send(Message::Text(msg.to_string())).await.expect("WebsocketClient.send failed");
     }
 }

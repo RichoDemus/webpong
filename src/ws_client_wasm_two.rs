@@ -1,28 +1,10 @@
-use std::cell::RefCell;
-use std::num::ParseIntError;
-use std::sync::{Arc, Mutex};
-use std::thread::sleep;
-use std::time::Duration;
 
-use futures::channel::mpsc::{Receiver, Sender, TryRecvError};
-use futures::StreamExt;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
 use web_sys::{ErrorEvent, MessageEvent, WebSocket};
 use crate::event_stream::{EventStream};
 use crate::ws_event::WsEvent;
 
-// wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
-
-macro_rules! console_log {
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
 
 pub struct Websocket {
     pub event_stream: EventStream,
@@ -93,9 +75,10 @@ impl Websocket {
     }
 
     pub fn send(&mut self, str: &str) {
-        self.ws.send_with_str(str);
+        self.ws.send_with_str(str).expect("wsclient.send failed");
     }
 
+    #[allow(dead_code)]
     fn close(&mut self) {
         let _ = self.ws.close();
     }

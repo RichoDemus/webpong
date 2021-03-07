@@ -1,21 +1,9 @@
 use futures_util::future::poll_fn;
-use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::future::Future;
 use std::sync::{Arc, Mutex};
 use std::task::{Poll, Waker};
-use wasm_bindgen::prelude::*;
 use crate::ws_server2::WebsocketClient;
-
-macro_rules! console_log {
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
 
 /// The source of events for a `blinds` application
 ///
@@ -53,7 +41,7 @@ impl EventStream {
     ///
     /// [`Event`]: Event
     pub fn next_event<'a>(&'a mut self) -> impl 'a + Future<Output = Option<WebsocketClient>> {
-        poll_fn(move |cx| {
+        poll_fn(move |_cx| {
             let buffer = self.buffer.clone();
             let mut buffer = buffer.lock().expect("expected to obtain lock");
             let option = buffer.events.pop_front();

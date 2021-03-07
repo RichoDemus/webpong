@@ -70,14 +70,14 @@ mod tests {
                                 }
                             }
                         }
-                        tokio::time::sleep(Duration::from_millis(100));
+                        tokio::time::sleep(Duration::from_millis(100)).await;
                     }
                     ws.close().await;
                 })
             }).collect::<Vec<_>>();
 
         for future in futures {
-            future.await;
+            future.await.expect("future await failed");
         }
 
         *server_running.lock().expect("close server") = false;

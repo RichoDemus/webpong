@@ -3,19 +3,8 @@ use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::future::Future;
 use std::sync::Arc;
-use std::task::{Poll, Waker};
-use wasm_bindgen::prelude::*;
+use std::task::Poll;
 use crate::ws_event::WsEvent;
-
-macro_rules! console_log {
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
 
 /// The source of events for a `blinds` application
 ///
@@ -34,8 +23,6 @@ impl EventStream {
         EventStream {
             buffer: Arc::new(RefCell::new(EventBuffer {
                 events: VecDeque::new(),
-                waker: None,
-                ready: false,
             })),
         }
     }
@@ -53,7 +40,7 @@ impl EventStream {
     ///
     /// [`Event`]: Event
     pub fn next_event<'a>(&'a mut self) -> impl 'a + Future<Output = Option<WsEvent>> {
-        poll_fn(move |cx| {
+        poll_fn(move |_cx| {
             let mut buffer = self.buffer.borrow_mut();
             let option = buffer.events.pop_front();
             // console_log!("popped {:?}, buffer ready?: {}", option, buffer.ready);
@@ -61,13 +48,6 @@ impl EventStream {
                 Some(event) => Poll::Ready(Some(event)),
                 None => {
                     Poll::Ready(None)
-                    // if buffer.ready {
-                    //     buffer.ready = false;
-                    //     Poll::Ready(None)
-                    // } else {
-                    //     buffer.waker = Some(cx.waker().clone());
-                    //     Poll::Pending
-                    // }
                 }
             }
         })
@@ -76,20 +56,10 @@ impl EventStream {
 
 pub(crate) struct EventBuffer {
     events: VecDeque<WsEvent>,
-    waker: Option<Waker>,
-    ready: bool,
 }
 
 impl EventBuffer {
     pub fn push(&mut self, event: WsEvent) {
         self.events.push_back(event);
-        self.mark_ready();
-    }
-
-    pub fn mark_ready(&mut self) {
-        if let Some(waker) = self.waker.take() {
-            waker.wake();
-        }
-        self.ready = true;
     }
 }

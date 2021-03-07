@@ -1,11 +1,10 @@
 #[cfg(not(target_arch = "wasm32"))]
-mod ws_server;
-
-#[cfg(not(target_arch = "wasm32"))]
 mod ws_client;
 #[cfg(target_arch = "wasm32")]
 mod ws_client_wasm_two;
+#[cfg(target_arch = "wasm32")]
 pub mod event_stream;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod event_stream_mutex;
 pub mod ws_event;
 mod simple_pong;
@@ -15,42 +14,25 @@ mod websocket_test;
 pub mod ws_server2;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod event_stream_mutex_client;
-// mod ws_client_wasm_stream;
 #[cfg(not(target_arch = "wasm32"))]
 use log::*;
 
 use std::env;
 
-use quicksilver::{geom::{Rectangle, Vector}, Graphics, graphics::Color, Input, Result, run, Settings, Window, Timer};
+use quicksilver::{geom::{Vector}, Graphics, graphics::Color, Input, Result, run, Settings, Window, Timer};
 
-
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
 #[cfg(target_arch = "wasm32")]
 use crate::ws_client_wasm_two::Websocket;
-// use crate::ws_client_wasm_stream::Websocket;
-use std::sync::mpsc::TryRecvError;
-use futures::StreamExt;
 use quicksilver::graphics::VectorFont;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::ws_client::Websocket;
 use crate::ws_event::WsEvent;
 use quicksilver::blinds::Key;
 use quicksilver::input::Event;
+#[cfg(not(target_arch = "wasm32"))]
 use std::time::{Duration, Instant};
+#[cfg(not(target_arch = "wasm32"))]
 use crate::simple_pong::SimplePong;
-
-#[cfg(target_arch = "wasm32")]
-macro_rules! console_log {
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
-
-#[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main(flavor = "multi_thread", worker_threads = 10)]
@@ -196,9 +178,7 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
     let ttf = VectorFont::from_slice(include_bytes!("BebasNeue-Regular.ttf"));
     let mut font = ttf.to_renderer(&gfx, 20.0)?;
 
-    let mut rect = Rectangle::new(Vector::new(0.0, 100.0), Vector::new(100.0, 100.0));
-
-    let mut last_ws_message = String::new();
+    let last_ws_message = String::new();
 
     let mut is_w_pressed = false;
     let mut is_s_pressed = false;
