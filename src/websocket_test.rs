@@ -4,7 +4,7 @@ mod tests {
     use tokio::time::Duration;
 
     use crate::ws_event::WsEvent;
-    use crate::{ws_client, ws_server2};
+    use crate::{ws_client, ws_server};
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 10)]
     async fn my_test() -> Result<(), Box<dyn std::error::Error>> {
@@ -12,7 +12,7 @@ mod tests {
             .filter_module("webpong", log::LevelFilter::Info)
             .try_init();
 
-        let ws_server = ws_server2::WebsocketServer::start();
+        let ws_server = ws_server::WebsocketServer::start();
         let ws_client_one = ws_client::Websocket::open("ws://localhost:8080");
         let ws_client_two = ws_client::Websocket::open("ws://localhost:8080");
 

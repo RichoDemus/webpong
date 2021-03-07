@@ -12,9 +12,7 @@ pub struct Websocket {
 
 impl Websocket {
     pub async fn open(url: &str) -> Self {
-        // console_log!("Time to open socket");
         let ws: WebSocket = WebSocket::new(url).unwrap();
-        // console_log!("opened, kinda");
 
         let event_stream = EventStream::new();
 
@@ -22,7 +20,6 @@ impl Websocket {
             // On Error
             let buffer = event_stream.buffer().clone();
             let onerror_callback = Closure::wrap(Box::new(move |e: ErrorEvent| {
-                // console_log!("onerror");
                 buffer
                     .lock()
                     .expect("aquire lock")
@@ -36,14 +33,11 @@ impl Websocket {
             // On Message
             let buffer = event_stream.buffer().clone();
             let onmessage_callback = Closure::wrap(Box::new(move |e: MessageEvent| {
-                // console_log!("onmessage: {:?}", e);
                 if let Ok(txt) = e.data().dyn_into::<js_sys::JsString>() {
-                    // console_log!("onmessage: {:?}", txt);
                     buffer
                         .lock()
                         .expect("aquire lock")
                         .push_back(WsEvent::Message(txt.into()));
-                    // console_log!("after push");
                 }
             }) as Box<dyn FnMut(MessageEvent)>);
             ws.set_onmessage(Some(onmessage_callback.as_ref().unchecked_ref()));
@@ -54,7 +48,6 @@ impl Websocket {
             // on close
             let buffer = event_stream.buffer().clone();
             let onclose_callback = Closure::wrap(Box::new(move |_| {
-                // console_log!("onclose");
                 buffer
                     .lock()
                     .expect("aquire lock")
@@ -68,7 +61,6 @@ impl Websocket {
             // on open
             let buffer = event_stream.buffer().clone();
             let onopen_callback = Closure::wrap(Box::new(move |_| {
-                // console_log!("onopen");
                 buffer
                     .lock()
                     .expect("aquire lock")
@@ -78,7 +70,6 @@ impl Websocket {
             onopen_callback.forget();
         }
 
-        // console_log!("return from ws client");
         Websocket { event_stream, ws }
     }
 

@@ -14,13 +14,11 @@ use crate::ws_event::WsEvent;
 
 pub struct WebsocketServer {
     pub running: Arc<Mutex<bool>>,
-    // ws_streams: Arc<Mutex<Vec<WebSocketStream<TcpStream>>>>,
     pub event_stream: EventStream<WebsocketClient>,
 }
 
 impl WebsocketServer {
     pub async fn start() -> std::result::Result<Self, Box<dyn std::error::Error>> {
-        // let ws_streams = Arc::new(Mutex::new(vec![]));
         let addr = "0.0.0.0:8080";
         let listener = TcpListener::bind(&addr).await?;
         info!("Listening on: {}", addr);
@@ -28,10 +26,8 @@ impl WebsocketServer {
         let event_stream = EventStream::new();
         let buffer = event_stream.buffer();
         let running = Arc::new(Mutex::new(true));
-        // let streams = ws_streams.clone();
         let result = WebsocketServer {
             running: running.clone(),
-            // ws_streams,
             event_stream,
         };
         tokio::spawn(async move {
@@ -55,7 +51,7 @@ impl WebsocketServer {
                             Err(e) => info!("Failed to upgrade websocket: {:?}", e),
                         }
                     }
-                    _ => (), //info!("poll result: {:?}", o),
+                    _ => (),
                 }
                 tokio::time::sleep(Duration::from_millis(100)).await;
             }

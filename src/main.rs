@@ -29,7 +29,7 @@ mod ws_client;
 mod ws_client_wasm_two;
 pub mod ws_event;
 #[cfg(not(target_arch = "wasm32"))]
-pub mod ws_server2;
+pub mod ws_server;
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main(flavor = "multi_thread", worker_threads = 10)]
@@ -40,11 +40,7 @@ async fn main() {
     #[cfg(not(target_arch = "wasm32"))]
     if let Some(arg) = args.get(1) {
         if arg.eq("--server") {
-            // #[cfg(not(target_arch = "wasm32"))]
-            //     let ws_server = ws_server::WsServer::new();
-
             server_logic().await;
-
             return;
         }
     }
@@ -86,7 +82,7 @@ async fn server_logic() {
     let _ = env_logger::builder()
         .filter_module("webpong", log::LevelFilter::Info)
         .try_init();
-    let mut ws_server = ws_server2::WebsocketServer::start()
+    let mut ws_server = ws_server::WebsocketServer::start()
         .await
         .expect("start ws server");
     let time_between_ticks = Duration::from_secs_f32(1.0 / 10.);
@@ -95,7 +91,6 @@ async fn server_logic() {
     let mut players = vec![];
 
     let mut simple_pong = SimplePong::new();
-    // simple_pong.toggle_pause();
 
     let mut next_tick = start + time_between_ticks;
     loop {
@@ -141,8 +136,6 @@ async fn server_logic() {
 
         simple_pong.tick();
 
-        // log::info!("{:?}", simple_pong.get_drawables());
-
         next_tick = next_tick + time_between_ticks;
         while Instant::now() < next_tick {
             tokio::time::sleep(tokio::time::Duration::from_millis(1)).await;
@@ -156,13 +149,11 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
     #[cfg(not(debug_assertions))]
     let ws_url = "wss://webpong.richodemus.com";
     #[cfg(not(target_arch = "wasm32"))]
-    // let mut ws: Websocket = ws_client::Websocket::open("ws://localhost:8080").await;
     let mut ws: Websocket = ws_client::Websocket::open(ws_url).await;
     #[cfg(target_arch = "wasm32")]
     console_error_panic_hook::set_once();
     #[cfg(target_arch = "wasm32")]
     let mut ws: Websocket = ws_client_wasm_two::Websocket::open(ws_url).await;
-    // let mut ws: Websocket = ws_client_wasm_stream::start_ws_client().await;
 
     let mut simple_pong = simple_pong::SimplePong::new();
 
@@ -178,7 +169,6 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
     let mut is_s_pressed = false;
 
     loop {
-        // warn!("loop...");
         while let Some(evt) = input.next_event().await {
             match evt {
                 Event::KeyboardInput(key) => match key.key() {
@@ -223,20 +213,10 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
             }
         }
 
-        // #[cfg(target_arch = "wasm32")]
-        // while let Some(evt) = ws.event_stream.next_event().await {
-        //     warn!("got event: {:?}", evt);
-        // }
-
-        // warn!("loop");
-        // #[cfg(target_arch = "wasm32")]
         while let Some(evt) = ws.event_stream.next_event().await {
             let evt: WsEvent = evt;
             match evt {
-                WsEvent::Opened => {
-                    // warn!("main: open");
-                    // ws.send("1");
-                }
+                WsEvent::Opened => {}
                 WsEvent::Message(msg) => {
                     // i up
                     // i not up
@@ -250,14 +230,6 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                     let up = msg.contains("up");
 
                     simple_pong.set_paddle_state(left_paddle, stop_moving, up);
-
-                    // info!("inc: {:?}", msg);
-                    // warn!("main: msg: {:?}", msg);
-                    // last_ws_message = msg.clone();
-                    // #[cfg(not(target_arch = "wasm32"))]
-                    // ws.send(msg.as_str()).await;
-                    // #[cfg(target_arch = "wasm32")]
-                    // ws.send(msg.as_str());
                 }
                 WsEvent::Error(_) => {}
                 WsEvent::Closed => (),
@@ -265,15 +237,8 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         }
 
         while update_timer.tick() {
-            if input.key_down(Key::W) {
-                // simple_pong.move_up();
-                // ws.send("move up").await;
-                // ws.send("move up").await;
-            }
-            if input.key_down(Key::S) {
-                // simple_pong.move_down();
-                // ws.send("move down");
-            }
+            if input.key_down(Key::W) {}
+            if input.key_down(Key::S) {}
             simple_pong.tick();
         }
 
