@@ -1,25 +1,18 @@
 #[cfg(not(target_arch = "wasm32"))]
 use log::*;
-
 use quicksilver::blinds::Key;
 use quicksilver::graphics::VectorFont;
 use quicksilver::input::Event;
 use quicksilver::{
-    geom::Vector, graphics::Color,  Graphics, Input, Result, Settings, Timer, Window,
+    geom::Vector, graphics::Color, Graphics, Input, Result, Settings, Timer, Window,
 };
-use crate::{simple_pong, draw};
 
 #[cfg(not(target_arch = "wasm32"))]
 use crate::ws_client::Websocket;
 #[cfg(target_arch = "wasm32")]
 use crate::ws_client_wasm::Websocket;
-
-#[cfg(not(target_arch = "wasm32"))]
-use crate::ws_client;
-#[cfg(target_arch = "wasm32")]
-use crate::ws_client_wasm;
-
 use crate::ws_event::WsEvent;
+use crate::{draw, simple_pong};
 
 pub fn run() {
     quicksilver::run(
@@ -35,16 +28,7 @@ pub fn run() {
 }
 
 async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
-    #[cfg(debug_assertions)]
-        let ws_url = "ws://localhost:8080";
-    #[cfg(not(debug_assertions))]
-        let ws_url = "wss://webpong.richodemus.com";
-    #[cfg(not(target_arch = "wasm32"))]
-        let mut ws: Websocket = ws_client::Websocket::open(ws_url).await;
-    #[cfg(target_arch = "wasm32")]
-        console_error_panic_hook::set_once();
-    #[cfg(target_arch = "wasm32")]
-        let mut ws: Websocket = ws_client_wasm::Websocket::open(ws_url).await;
+    let mut ws: Websocket = Websocket::open().await;
 
     let mut simple_pong = simple_pong::SimplePong::new();
 
@@ -71,31 +55,19 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                     Key::W => {
                         if !key.is_down() {
                             is_w_pressed = false;
-                            #[cfg(not(target_arch = "wasm32"))]
-                                ws.send("not up").await;
-                            #[cfg(target_arch = "wasm32")]
-                                ws.send("not up");
+                            ws.send("not up").await;
                         } else if key.is_down() && !is_w_pressed {
                             is_w_pressed = true;
-                            #[cfg(not(target_arch = "wasm32"))]
-                                ws.send("up").await;
-                            #[cfg(target_arch = "wasm32")]
-                                ws.send("up");
+                            ws.send("up").await;
                         }
                     }
                     Key::S => {
                         if !key.is_down() {
                             is_s_pressed = false;
-                            #[cfg(not(target_arch = "wasm32"))]
-                                ws.send("not down").await;
-                            #[cfg(target_arch = "wasm32")]
-                                ws.send("not down");
+                            ws.send("not down").await;
                         } else if key.is_down() && !is_s_pressed {
                             is_s_pressed = true;
-                            #[cfg(not(target_arch = "wasm32"))]
-                                ws.send("down").await;
-                            #[cfg(target_arch = "wasm32")]
-                                ws.send("down");
+                            ws.send("down").await;
                         }
                     }
                     _ => (),

@@ -20,7 +20,16 @@ pub struct Websocket {
 }
 
 impl Websocket {
-    pub async fn open(url: &str) -> Self {
+    pub async fn open() -> Self {
+        #[cfg(debug_assertions)]
+        let ws_url = "ws://localhost:8080";
+        #[cfg(not(debug_assertions))]
+        let ws_url = "wss://webpong.richodemus.com";
+
+        Self::open_url(ws_url).await
+    }
+
+    pub async fn open_url(url: &str) -> Self {
         let url = Url::parse(url).unwrap();
         let (ws_stream, _) = connect_async(url).await.expect("Failed to connect");
         let (write, mut read) = ws_stream.split();

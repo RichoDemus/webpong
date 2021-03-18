@@ -13,8 +13,8 @@ mod tests {
             .try_init();
 
         let ws_server = ws_server::WebsocketServer::start();
-        let ws_client_one = ws_client::Websocket::open("ws://localhost:8080");
-        let ws_client_two = ws_client::Websocket::open("ws://localhost:8080");
+        let ws_client_one = ws_client::Websocket::open_url("ws://localhost:8080");
+        let ws_client_two = ws_client::Websocket::open_url("ws://localhost:8080");
 
         let (server, client_one, client_two) =
             tokio::join!(ws_server, ws_client_one, ws_client_two,);

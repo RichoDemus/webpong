@@ -11,7 +11,16 @@ pub struct Websocket {
 }
 
 impl Websocket {
-    pub async fn open(url: &str) -> Self {
+    pub async fn open() -> Self {
+        #[cfg(debug_assertions)]
+        let ws_url = "ws://localhost:8080";
+        #[cfg(not(debug_assertions))]
+        let ws_url = "wss://webpong.richodemus.com";
+
+        Self::open_url(ws_url).await
+    }
+
+    pub async fn open_url(url: &str) -> Self {
         let ws: WebSocket = WebSocket::new(url).unwrap();
 
         let event_stream = EventStream::new();
@@ -73,7 +82,7 @@ impl Websocket {
         Websocket { event_stream, ws }
     }
 
-    pub fn send(&mut self, str: &str) {
+    pub async fn send(&mut self, str: &str) {
         self.ws.send_with_str(str).expect("wsclient.send failed");
     }
 
