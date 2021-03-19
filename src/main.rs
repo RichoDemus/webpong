@@ -1,6 +1,9 @@
 #[cfg(not(target_arch = "wasm32"))]
 use std::env;
 
+#[cfg(not(target_arch = "wasm32"))]
+use server::server_game_loop;
+
 mod network;
 
 mod client_game_loop;
@@ -9,7 +12,7 @@ pub mod event_stream;
 mod simple_pong;
 
 #[cfg(not(target_arch = "wasm32"))]
-mod server_game_loop;
+mod server;
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main(flavor = "multi_thread", worker_threads = 10)]
