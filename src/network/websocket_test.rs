@@ -13,7 +13,7 @@ mod tests {
             .filter_module("webpong", log::LevelFilter::Trace)
             .try_init();
 
-        let ws_server = ws_server::WebsocketServer::start();
+        let ws_server = ws_server::WebsocketServer::start_addr("localhost:8080");
         let ws_client_one = ws_client::Websocket::open_url("ws://localhost:8080");
         let ws_client_two = ws_client::Websocket::open_url("ws://localhost:8080");
 

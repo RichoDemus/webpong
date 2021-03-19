@@ -19,7 +19,10 @@ pub struct WebsocketServer {
 
 impl WebsocketServer {
     pub async fn start() -> std::result::Result<Self, Box<dyn std::error::Error>> {
-        let addr = "0.0.0.0:8080";
+        Self::start_addr("0.0.0.0:8080").await
+    }
+
+    pub async fn start_addr(addr: &str) -> std::result::Result<Self, Box<dyn std::error::Error>> {
         let listener = TcpListener::bind(&addr).await?;
         info!("Listening on: {}", addr);
 
