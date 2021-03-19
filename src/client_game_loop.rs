@@ -8,10 +8,10 @@ use quicksilver::{
 };
 
 #[cfg(not(target_arch = "wasm32"))]
-use crate::ws_client::Websocket;
+use crate::network::ws_client::Websocket;
 #[cfg(target_arch = "wasm32")]
-use crate::ws_client_wasm::Websocket;
-use crate::ws_event::WsEvent;
+use crate::network::ws_client_wasm::Websocket;
+use crate::network::ws_event::WsEvent;
 use crate::{draw, simple_pong};
 
 pub fn run() {

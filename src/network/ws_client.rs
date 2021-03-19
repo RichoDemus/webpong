@@ -4,7 +4,7 @@ use tokio_tungstenite::{connect_async, tungstenite::protocol::Message, WebSocket
 use url::Url;
 
 use crate::event_stream::EventStream;
-use crate::ws_event::WsEvent;
+use crate::network::ws_event::WsEvent;
 
 pub struct Websocket {
     pub event_stream: EventStream<WsEvent>,

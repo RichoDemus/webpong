@@ -10,7 +10,7 @@ use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::{accept_async, WebSocketStream};
 
 use crate::event_stream::EventStream;
-use crate::ws_event::WsEvent;
+use crate::network::ws_event::WsEvent;
 
 pub struct WebsocketServer {
     pub running: Arc<Mutex<bool>>,

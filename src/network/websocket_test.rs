@@ -3,8 +3,8 @@ mod tests {
     use log::*;
     use tokio::time::Duration;
 
-    use crate::ws_event::WsEvent;
-    use crate::{ws_client, ws_server};
+    use crate::network::ws_event::WsEvent;
+    use crate::network::{ws_client, ws_server};
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 10)]
     async fn my_test() -> Result<(), Box<dyn std::error::Error>> {

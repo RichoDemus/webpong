@@ -1,18 +1,12 @@
 #[cfg(not(target_arch = "wasm32"))]
 use std::env;
 
+mod network;
+
 mod client_game_loop;
 mod draw;
 pub mod event_stream;
 mod simple_pong;
-mod websocket_test;
-#[cfg(not(target_arch = "wasm32"))]
-mod ws_client;
-#[cfg(target_arch = "wasm32")]
-mod ws_client_wasm;
-pub mod ws_event;
-#[cfg(not(target_arch = "wasm32"))]
-pub mod ws_server;
 
 #[cfg(not(target_arch = "wasm32"))]
 mod server_game_loop;

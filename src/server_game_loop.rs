@@ -1,9 +1,9 @@
 use log::*;
 use tokio::time::{Duration, Instant};
 
+use crate::network::ws_event::WsEvent;
+use crate::network::ws_server;
 use crate::simple_pong::SimplePong;
-use crate::ws_event::WsEvent;
-use crate::ws_server;
 
 pub async fn run() {
     server_logic().await;

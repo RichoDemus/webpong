@@ -3,7 +3,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{ErrorEvent, MessageEvent, WebSocket};
 
 use crate::event_stream::EventStream;
-use crate::ws_event::WsEvent;
+use crate::network::ws_event::WsEvent;
 
 pub struct Websocket {
     pub event_stream: EventStream<WsEvent>,
