@@ -1,8 +1,6 @@
 #[cfg(not(target_arch = "wasm32"))]
 use std::env;
 
-#[cfg(not(target_arch = "wasm32"))]
-use server::server_game_loop;
 
 mod network;
 
@@ -25,7 +23,7 @@ async fn main() {
 
     if let Some(arg) = args.get(1) {
         if arg.eq("--server") {
-            server_game_loop::run().await;
+            server::server::start().await;
             return;
         }
     }

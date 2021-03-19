@@ -12,6 +12,7 @@ use tokio_tungstenite::{accept_async, WebSocketStream};
 use crate::event_stream::EventStream;
 use crate::network::ws_event::WsEvent;
 use uuid::Uuid;
+use std::fmt;
 
 pub struct WebsocketServer {
     pub running: Arc<Mutex<bool>>,
@@ -73,6 +74,7 @@ impl WebsocketServer {
 
 pub struct WebsocketClient {
     pub id: Uuid,
+    pub name: Option<String>,
     pub event_stream: EventStream<WsEvent>,
     send: SplitSink<WebSocketStream<TcpStream>, Message>,
 }
@@ -113,15 +115,22 @@ impl WebsocketClient {
                 .push_back(WsEvent::Closed);
         });
 
-        let websocket_client = WebsocketClient { id: Uuid::new_v4(), event_stream, send };
+        let websocket_client = WebsocketClient { id: Uuid::new_v4(), name:None, event_stream, send };
         websocket_client
     }
 
     pub async fn send(&mut self, msg: &crate::network::message::Message) {
+        trace!("Sending {:?} to {}", msg, self);
         let str = serde_json::to_string(msg).expect("Failed to serialize json");
         self.send
             .send(Message::Text(str))
             .await
             .expect("WebsocketClient.send failed");
+    }
+}
+
+impl fmt::Display for WebsocketClient {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.name.as_ref().unwrap_or(&String::from("N/A")))
     }
 }

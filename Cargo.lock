@@ -3160,6 +3160,7 @@ dependencies = [
  "nalgebra",
  "ncollide2d",
  "quicksilver",
+ "rand 0.8.3",
  "send_wrapper",
  "serde",
  "serde_json",

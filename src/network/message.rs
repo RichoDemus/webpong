@@ -9,7 +9,7 @@ pub enum Message {
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone)]
 pub enum ClientMessage {
-    SetName(String),
+    EnterGame,
     PaddleUp,
     PaddleDown,
     PaddleStop,
@@ -17,15 +17,22 @@ pub enum ClientMessage {
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone)]
 pub enum ServerMessage {
+    SetName(String),
     PaddleUp(PaddleId),
     PaddleDown(PaddleId),
     PaddleStop(PaddleId),
+    GameState(GameState),
 }
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone)]
 pub enum PaddleId {
     Left,
     Right,
+}
+
+#[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone, Default)]
+pub struct GameState {
+
 }
 
 #[cfg(test)]

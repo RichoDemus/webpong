@@ -43,7 +43,6 @@ async fn server_logic() {
                         match msg {
                             Message::Ping => {}
                             Message::ClientMessage(msg) => match msg {
-                                ClientMessage::SetName(_) => {}
                                 ClientMessage::PaddleUp => {
                                     if i > 1 {
                                         // this is a spectator
@@ -86,6 +85,7 @@ async fn server_logic() {
                                     messages_to_send
                                         .push(Message::ServerMessage(PaddleStop(paddle_id)));
                                 }
+                                _ => {}
                             },
                             Message::ServerMessage(_) => {}
                         }

@@ -21,6 +21,7 @@ pub struct Websocket {
 
 impl Websocket {
     pub async fn open() -> Self {
+        log::info!("asd");
         #[cfg(debug_assertions)]
         let ws_url = "ws://localhost:8080";
         #[cfg(not(debug_assertions))]
@@ -49,6 +50,7 @@ impl Websocket {
                     Ok(msg) => {
                         let str = msg.to_string();
                         let msg = serde_json::from_str(str.as_str()).expect("deserialize");
+                        log::info!("Received msg: {:?}", msg);
                         buffer_clone
                             .lock()
                             .expect("expected lock")
