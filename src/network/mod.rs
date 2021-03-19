@@ -1,3 +1,4 @@
+pub mod message;
 mod websocket_test;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod ws_client;

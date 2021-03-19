@@ -3,6 +3,7 @@ mod tests {
     use log::*;
     use tokio::time::Duration;
 
+    use crate::network::message::ClientMessage;
     use crate::network::ws_event::WsEvent;
     use crate::network::{ws_client, ws_server};
 
@@ -31,9 +32,8 @@ mod tests {
                             if let Some(msg) = ws_client.event_stream.next_event().await {
                                 match msg {
                                     WsEvent::Message(msg) => {
-                                        let msg = msg.as_str();
                                         info!("Server received msg: {:?}", msg);
-                                        ws_client.send(msg).await;
+                                        ws_client.send(&msg).await;
                                         break;
                                     }
                                     m => warn!("Server received unexpected msg: {:?}", m),
@@ -58,7 +58,9 @@ mod tests {
                         match ws.event_stream.next_event().await {
                             None => {}
                             Some(msg) => match msg {
-                                WsEvent::Opened => ws.send("hello from client").await,
+                                WsEvent::Opened => {
+                                    ws.send(ClientMessage::SetName(String::from("hello"))).await
+                                }
                                 WsEvent::Message(msg) => {
                                     info!("ws client msg: {:?}", msg);
                                     break;

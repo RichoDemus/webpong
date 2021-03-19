@@ -1,6 +1,9 @@
 use log::*;
 use tokio::time::{Duration, Instant};
 
+use crate::network::message::ServerMessage::PaddleDown;
+use crate::network::message::ServerMessage::{PaddleStop, PaddleUp};
+use crate::network::message::{ClientMessage, Message, PaddleId};
 use crate::network::ws_event::WsEvent;
 use crate::network::ws_server;
 use crate::simple_pong::SimplePong;
@@ -36,7 +39,55 @@ async fn server_logic() {
                 match msg {
                     WsEvent::Message(msg) => {
                         log::info!("Got message from client {}: {:?}", i, msg);
-                        messages_to_send.push(format!("{} {}", i, msg));
+                        match msg {
+                            Message::Ping => {}
+                            Message::ClientMessage(msg) => match msg {
+                                ClientMessage::SetName(_) => {}
+                                ClientMessage::PaddleUp => {
+                                    if i > 1 {
+                                        // this is a spectator
+                                        continue;
+                                    }
+                                    let paddle_id = if i == 0 {
+                                        PaddleId::Left
+                                    } else {
+                                        PaddleId::Right
+                                    };
+
+                                    messages_to_send
+                                        .push(Message::ServerMessage(PaddleUp(paddle_id)));
+                                }
+                                ClientMessage::PaddleDown => {
+                                    if i > 1 {
+                                        // this is a spectator
+                                        continue;
+                                    }
+                                    let paddle_id = if i == 0 {
+                                        PaddleId::Left
+                                    } else {
+                                        PaddleId::Right
+                                    };
+
+                                    messages_to_send
+                                        .push(Message::ServerMessage(PaddleDown(paddle_id)));
+                                }
+                                ClientMessage::PaddleStop => {
+                                    if i > 1 {
+                                        // this is a spectator
+                                        continue;
+                                    }
+                                    let paddle_id = if i == 0 {
+                                        PaddleId::Left
+                                    } else {
+                                        PaddleId::Right
+                                    };
+
+                                    messages_to_send
+                                        .push(Message::ServerMessage(PaddleStop(paddle_id)));
+                                }
+                            },
+                            Message::ServerMessage(_) => {}
+                        }
                     }
                     WsEvent::Closed => {
                         info!("received error for {}, closing", i);
@@ -59,9 +110,9 @@ async fn server_logic() {
             }
         }
 
-        for msg in messages_to_send {
+        for msg in &messages_to_send {
             for player in &mut players {
-                player.send(msg.as_str()).await;
+                player.send(msg).await;
             }
         }
 

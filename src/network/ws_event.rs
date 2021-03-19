@@ -1,7 +1,9 @@
+use crate::network::message::Message;
+
 #[derive(Debug, Clone)]
 pub enum WsEvent {
     Opened,
-    Message(String),
+    Message(Message),
     Error(String),
     Closed,
 }

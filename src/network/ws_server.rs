@@ -84,6 +84,7 @@ impl WebsocketClient {
                 match msg {
                     Ok(msg) => match msg {
                         Message::Text(msg) => {
+                            let msg = serde_json::from_str(msg.as_str()).expect("deserialize json");
                             buffer
                                 .lock()
                                 .expect("client lock")
@@ -111,9 +112,10 @@ impl WebsocketClient {
         websocket_client
     }
 
-    pub async fn send(&mut self, msg: &str) {
+    pub async fn send(&mut self, msg: &crate::network::message::Message) {
+        let str = serde_json::to_string(msg).expect("Failed to serialize json");
         self.send
-            .send(Message::Text(msg.to_string()))
+            .send(Message::Text(str))
             .await
             .expect("WebsocketClient.send failed");
     }

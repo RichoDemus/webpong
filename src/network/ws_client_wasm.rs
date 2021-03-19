@@ -43,10 +43,12 @@ impl Websocket {
             let buffer = event_stream.buffer().clone();
             let onmessage_callback = Closure::wrap(Box::new(move |e: MessageEvent| {
                 if let Ok(txt) = e.data().dyn_into::<js_sys::JsString>() {
+                    let txt: String = txt.into();
+                    let msg = serde_json::from_str(txt.as_str()).expect("deserialize json");
                     buffer
                         .lock()
                         .expect("aquire lock")
-                        .push_back(WsEvent::Message(txt.into()));
+                        .push_back(WsEvent::Message(msg));
                 }
             }) as Box<dyn FnMut(MessageEvent)>);
             ws.set_onmessage(Some(onmessage_callback.as_ref().unchecked_ref()));
@@ -82,8 +84,12 @@ impl Websocket {
         Websocket { event_stream, ws }
     }
 
-    pub async fn send(&mut self, str: &str) {
-        self.ws.send_with_str(str).expect("wsclient.send failed");
+    pub async fn send(&mut self, msg: crate::network::message::ClientMessage) {
+        let msg = crate::network::message::Message::ClientMessage(msg);
+        let str = serde_json::to_string(&msg).expect("Serialize json");
+        self.ws
+            .send_with_str(str.as_str())
+            .expect("wsclient.send failed");
     }
 
     #[allow(dead_code)]

@@ -48,10 +48,11 @@ impl Websocket {
                 match message {
                     Ok(msg) => {
                         let str = msg.to_string();
+                        let msg = serde_json::from_str(str.as_str()).expect("deserialize");
                         buffer_clone
                             .lock()
                             .expect("expected lock")
-                            .push_back(WsEvent::Message(str));
+                            .push_back(WsEvent::Message(msg));
                     }
                     Err(e) => log::info!("ws recv error: {:?}", e),
                 };
@@ -64,9 +65,11 @@ impl Websocket {
         }
     }
 
-    pub async fn send(&mut self, str: &str) {
+    pub async fn send(&mut self, msg: crate::network::message::ClientMessage) {
+        let msg = crate::network::message::Message::ClientMessage(msg);
+        let str = serde_json::to_string(&msg).expect("Serialize json");
         self.write
-            .send(Message::text(str.clone()))
+            .send(Message::text(str.as_str()))
             .await
             .expect("Websocket.send failed");
     }

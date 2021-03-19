@@ -3,10 +3,13 @@ use log::*;
 use quicksilver::blinds::Key;
 use quicksilver::graphics::VectorFont;
 use quicksilver::input::Event;
+#[cfg(target_arch = "wasm32")]
+use quicksilver::log::*;
 use quicksilver::{
     geom::Vector, graphics::Color, Graphics, Input, Result, Settings, Timer, Window,
 };
 
+use crate::network::message::{ClientMessage, Message, PaddleId, ServerMessage};
 #[cfg(not(target_arch = "wasm32"))]
 use crate::network::ws_client::Websocket;
 #[cfg(target_arch = "wasm32")]
@@ -55,19 +58,19 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                     Key::W => {
                         if !key.is_down() {
                             is_w_pressed = false;
-                            ws.send("not up").await;
+                            ws.send(ClientMessage::PaddleStop).await;
                         } else if key.is_down() && !is_w_pressed {
                             is_w_pressed = true;
-                            ws.send("up").await;
+                            ws.send(ClientMessage::PaddleUp).await;
                         }
                     }
                     Key::S => {
                         if !key.is_down() {
                             is_s_pressed = false;
-                            ws.send("not down").await;
+                            ws.send(ClientMessage::PaddleStop).await;
                         } else if key.is_down() && !is_s_pressed {
                             is_s_pressed = true;
-                            ws.send("down").await;
+                            ws.send(ClientMessage::PaddleDown).await;
                         }
                     }
                     _ => (),
@@ -80,20 +83,36 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
             let evt: WsEvent = evt;
             match evt {
                 WsEvent::Opened => {}
-                WsEvent::Message(msg) => {
-                    // i up
-                    // i not up
-                    // i down
-                    // i not down
-                    if !msg.contains("0") && !msg.contains("1") {
-                        continue;
-                    }
-                    let left_paddle = msg.contains("0");
-                    let stop_moving = msg.contains("not");
-                    let up = msg.contains("up");
-
-                    simple_pong.set_paddle_state(left_paddle, stop_moving, up);
-                }
+                WsEvent::Message(msg) => match msg {
+                    Message::Ping => {}
+                    Message::ClientMessage(msg) => warn!("Received client message {:?}", msg),
+                    Message::ServerMessage(msg) => match msg {
+                        ServerMessage::PaddleUp(paddle) => match paddle {
+                            PaddleId::Left => {
+                                simple_pong.set_paddle_state(true, false, true);
+                            }
+                            PaddleId::Right => {
+                                simple_pong.set_paddle_state(false, false, true);
+                            }
+                        },
+                        ServerMessage::PaddleDown(paddle) => match paddle {
+                            PaddleId::Left => {
+                                simple_pong.set_paddle_state(true, false, false);
+                            }
+                            PaddleId::Right => {
+                                simple_pong.set_paddle_state(false, false, false);
+                            }
+                        },
+                        ServerMessage::PaddleStop(paddle) => match paddle {
+                            PaddleId::Left => {
+                                simple_pong.set_paddle_state(true, true, true);
+                            }
+                            PaddleId::Right => {
+                                simple_pong.set_paddle_state(false, true, true);
+                            }
+                        },
+                    },
+                },
                 WsEvent::Error(_) => {}
                 WsEvent::Closed => (),
             }
