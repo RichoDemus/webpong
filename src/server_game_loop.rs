@@ -29,6 +29,7 @@ async fn server_logic() {
     let mut next_tick = start + time_between_ticks;
     loop {
         while let Some(client) = ws_server.event_stream.next_event().await {
+            info!("Client {} connected", client.id);
             players.push(client);
         }
 

@@ -11,6 +11,7 @@ use tokio_tungstenite::{accept_async, WebSocketStream};
 
 use crate::event_stream::EventStream;
 use crate::network::ws_event::WsEvent;
+use uuid::Uuid;
 
 pub struct WebsocketServer {
     pub running: Arc<Mutex<bool>>,
@@ -71,6 +72,7 @@ impl WebsocketServer {
 }
 
 pub struct WebsocketClient {
+    pub id: Uuid,
     pub event_stream: EventStream<WsEvent>,
     send: SplitSink<WebSocketStream<TcpStream>, Message>,
 }
@@ -111,7 +113,7 @@ impl WebsocketClient {
                 .push_back(WsEvent::Closed);
         });
 
-        let websocket_client = WebsocketClient { event_stream, send };
+        let websocket_client = WebsocketClient { id: Uuid::new_v4(), event_stream, send };
         websocket_client
     }
 
