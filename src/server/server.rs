@@ -1,11 +1,11 @@
 use log::*;
 use tokio::time::Duration;
 
-use crate::network::ws_server;
+use crate::network::message::{ClientMessage, GameState, Message, ServerMessage};
 use crate::network::ws_event::WsEvent;
-use crate::network::message::{Message, ClientMessage, ServerMessage, GameState};
-use rand::{thread_rng, Rng};
+use crate::network::ws_server;
 use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
 use tungstenite::protocol::Role::Client;
 
 pub async fn start() {
@@ -15,7 +15,6 @@ pub async fn start() {
     let mut ws_server = ws_server::WebsocketServer::start()
         .await
         .expect("start ws server");
-
 
     let mut pre_lobby_players = vec![];
     let mut players_in_game = vec![];
@@ -32,18 +31,29 @@ pub async fn start() {
                 .map(char::from)
                 .collect();
             client.name = Some(rand_string.clone());
-            client.send(&Message::ServerMessage(ServerMessage::SetName(rand_string))).await;
+            client
+                .send(&Message::ServerMessage(ServerMessage::SetName(rand_string)))
+                .await;
             pre_lobby_players.push(client);
         }
 
-        pre_lobby_players = pre_lobby_players.into_iter()
-            .filter_map(|mut player|{
-                let event = player.event_stream.buffer().lock().expect("asd").pop_front();
+        pre_lobby_players = pre_lobby_players
+            .into_iter()
+            .filter_map(|mut player| {
+                let event = player
+                    .event_stream
+                    .buffer()
+                    .lock()
+                    .expect("asd")
+                    .pop_front();
 
                 if let Some(WsEvent::Error(e)) = event {
                     warn!("Err: {:?}", e);
                     Some(player)
-                } else if let Some(WsEvent::Message(Message::ClientMessage(ClientMessage::EnterGame))) = event {
+                } else if let Some(WsEvent::Message(Message::ClientMessage(
+                    ClientMessage::EnterGame,
+                ))) = event
+                {
                     info!("Player {} entering game", player);
                     players_in_game.push(player);
                     new_player_in_game = true;
@@ -58,12 +68,14 @@ pub async fn start() {
 
         for player in &mut players_in_game {
             if new_player_in_game {
-                player.send(&Message::ServerMessage(ServerMessage::GameState(GameState::default()))).await;
+                player
+                    .send(&Message::ServerMessage(ServerMessage::GameState(
+                        GameState::default(),
+                    )))
+                    .await;
             }
         }
         new_player_in_game = false;
-
-
 
         // info!("players, pre-game: {} game: {}", pre_lobby_players.len(), players_in_game.len());
 

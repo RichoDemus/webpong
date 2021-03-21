@@ -6,6 +6,7 @@ mod tests {
     use crate::network::message::ClientMessage;
     use crate::network::ws_event::WsEvent;
     use crate::network::{ws_client, ws_server};
+    use tungstenite::protocol::Role::Client;
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 10)]
     async fn my_test() -> Result<(), Box<dyn std::error::Error>> {
@@ -58,9 +59,7 @@ mod tests {
                         match ws.event_stream.next_event().await {
                             None => {}
                             Some(msg) => match msg {
-                                WsEvent::Opened => {
-                                    ws.send(ClientMessage::SetName(String::from("hello"))).await
-                                }
+                                WsEvent::Opened => ws.send(ClientMessage::EnterGame).await,
                                 WsEvent::Message(msg) => {
                                     info!("ws client msg: {:?}", msg);
                                     break;

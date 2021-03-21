@@ -31,9 +31,7 @@ pub enum PaddleId {
 }
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone, Default)]
-pub struct GameState {
-
-}
+pub struct GameState {}
 
 #[cfg(test)]
 mod tests {
@@ -41,11 +39,11 @@ mod tests {
 
     #[test]
     fn test_serde() {
-        let msg = Message::ClientMessage(ClientMessage::SetName(String::from("Richo")));
+        let msg = Message::ServerMessage(ServerMessage::SetName(String::from("Richo")));
 
         let str = serde_json::to_string(&msg).expect("serialize to json");
 
-        let expected = r#"{"ClientMessage":{"SetName":"Richo"}}"#;
+        let expected = r#"{"ServerMessage":{"SetName":"Richo"}}"#;
         assert_eq!(expected, str);
 
         let enum_again = serde_json::from_str(str.as_str()).expect("deserialize json");

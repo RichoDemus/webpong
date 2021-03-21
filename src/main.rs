@@ -1,7 +1,6 @@
 #[cfg(not(target_arch = "wasm32"))]
 use std::env;
 
-
 mod network;
 
 mod client_game_loop;
