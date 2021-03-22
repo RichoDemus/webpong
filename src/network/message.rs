@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub enum Message {
     Ping,
     ClientMessage(ClientMessage),
     ServerMessage(ServerMessage),
 }
 
-#[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub enum ClientMessage {
     EnterGame,
     PaddleUp,
@@ -15,7 +15,7 @@ pub enum ClientMessage {
     PaddleStop,
 }
 
-#[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub enum ServerMessage {
     SetName(String),
     PaddleUp(PaddleId),
@@ -30,8 +30,25 @@ pub enum PaddleId {
     Right,
 }
 
-#[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone, Default)]
-pub struct GameState {}
+#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
+pub enum PaddleState {
+    Up,
+    Down,
+    Still,
+}
+impl Default for PaddleState {
+    fn default() -> Self {
+        PaddleState::Still
+    }
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default)]
+pub struct GameState {
+    pub left_paddle_y: f64,
+    pub left_paddle_state: PaddleState,
+    pub right_paddle_y:f64,
+    pub right_paddle_state: PaddleState,
+}
 
 #[cfg(test)]
 mod tests {

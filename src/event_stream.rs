@@ -32,4 +32,10 @@ impl<T> EventStream<T> {
             }
         })
     }
+
+    pub fn next(&mut self) -> Option<T> {
+        self.buffer.lock()
+            .expect("EventStream.next failed to obtain lock")
+            .pop_front()
+    }
 }

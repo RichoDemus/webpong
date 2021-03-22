@@ -7,6 +7,7 @@ use crate::network::ws_server;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use tungstenite::protocol::Role::Client;
+use crate::server::pong_server::PongServer;
 
 pub async fn start() {
     let _ = env_logger::builder()
@@ -17,9 +18,11 @@ pub async fn start() {
         .expect("start ws server");
 
     let mut pre_lobby_players = vec![];
-    let mut players_in_game = vec![];
+    // let mut players_in_game = vec![];
 
     let mut new_player_in_game = false; //set to true when a new player joins to signal gamestate sync
+
+    let mut pong_server = PongServer::default();
 
     //lobby
     loop {
@@ -55,7 +58,7 @@ pub async fn start() {
                 ))) = event
                 {
                     info!("Player {} entering game", player);
-                    players_in_game.push(player);
+                    pong_server.add_player(player);
                     new_player_in_game = true;
                     None
                 } else if let Some(WsEvent::Closed) = event {
@@ -66,16 +69,18 @@ pub async fn start() {
             })
             .collect();
 
-        for player in &mut players_in_game {
-            if new_player_in_game {
-                player
-                    .send(&Message::ServerMessage(ServerMessage::GameState(
-                        GameState::default(),
-                    )))
-                    .await;
-            }
-        }
+        // for player in &mut players_in_game {
+        //     if new_player_in_game {
+        //         player
+        //             .send(&Message::ServerMessage(ServerMessage::GameState(
+        //                 GameState::default(),
+        //             )))
+        //             .await;
+        //     }
+        // }
         new_player_in_game = false;
+
+        pong_server.tick().await;
 
         // info!("players, pre-game: {} game: {}", pre_lobby_players.len(), players_in_game.len());
 

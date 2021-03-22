@@ -28,6 +28,7 @@ env_logger = "0.8.3"
 cfg-if = "1.0.0"
 uuid = { version = "0.8", features = ["serde", "v4"] }
 rand = "0.8.0"
+retain_mut = "0.1.2"
 
 #futures = "*"
 

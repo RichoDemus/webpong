@@ -6,7 +6,9 @@ use ncollide2d::shape::Cuboid;
 use ncollide2d::{query, shape};
 #[cfg(target_arch = "wasm32")]
 use quicksilver::log::*;
+use crate::network::message::{GameState, PaddleState};
 
+#[derive(Debug)]
 pub struct SimplePong {
     left_paddle: Paddle,
     right_paddle: Paddle,
@@ -14,6 +16,7 @@ pub struct SimplePong {
     paused: bool,
 }
 
+#[derive(Debug)]
 pub struct Ball {
     pub position: Point2<f64>,
     pub shape: shape::Ball<f64>,
@@ -35,13 +38,6 @@ pub struct Paddle {
     pub position: Point2<f64>,
     pub shape: Cuboid<f64>,
     state: PaddleState,
-}
-
-#[derive(Debug)]
-enum PaddleState {
-    Up,
-    Down,
-    Still,
 }
 
 impl Paddle {
@@ -72,6 +68,7 @@ impl SimplePong {
     }
 
     pub fn tick(&mut self) {
+        // info!("Tick: states {:?} {:?}", self.left_paddle.state, self.right_paddle.state);
         let mov = match self.right_paddle.state {
             PaddleState::Up => -8.,
             PaddleState::Down => 8.,
@@ -129,6 +126,13 @@ impl SimplePong {
 
     pub fn toggle_pause(&mut self) {
         self.paused = !self.paused;
+    }
+
+    pub fn update_state(&mut self, state:&GameState) {
+        self.left_paddle.position.y = state.left_paddle_y;
+        self.right_paddle.position.y = state.right_paddle_y;
+        self.left_paddle.state = state.left_paddle_state;
+        self.right_paddle.state = state.right_paddle_state;
     }
 
     pub fn set_paddle_state(&mut self, left_paddle: bool, stop_moving: bool, up: bool) {

@@ -178,7 +178,11 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                                         simple_pong.set_paddle_state(false, true, true);
                                     }
                                 },
-                                _ => {}
+                                ServerMessage::GameState(state) => {
+                                    simple_pong.update_state(&state);
+                                },
+
+                                SetName(_) => {}
                             },
                         },
                         WsEvent::Error(_) => {}
