@@ -1,13 +1,12 @@
 use log::*;
 use tokio::time::Duration;
 
-use crate::network::message::{ClientMessage, GameState, Message, ServerMessage};
+use crate::network::message::{ClientMessage, Message, ServerMessage};
 use crate::network::ws_event::WsEvent;
 use crate::network::ws_server;
+use crate::server::pong_server::PongServer;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
-use tungstenite::protocol::Role::Client;
-use crate::server::pong_server::PongServer;
 
 pub async fn start() {
     let _ = env_logger::builder()
@@ -42,7 +41,7 @@ pub async fn start() {
 
         pre_lobby_players = pre_lobby_players
             .into_iter()
-            .filter_map(|mut player| {
+            .filter_map(|player| {
                 let event = player
                     .event_stream
                     .buffer()

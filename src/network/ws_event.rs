@@ -4,6 +4,7 @@ use crate::network::message::Message;
 pub enum WsEvent {
     Opened,
     Message(Message),
+    #[allow(dead_code)]
     Error(String),
     Closed,
 }

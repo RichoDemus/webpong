@@ -1,3 +1,4 @@
+use crate::network::message::{GameState, PaddleState};
 #[cfg(not(target_arch = "wasm32"))]
 use log::*;
 use nalgebra::{Isometry2, Point2, Vector2};
@@ -6,7 +7,6 @@ use ncollide2d::shape::Cuboid;
 use ncollide2d::{query, shape};
 #[cfg(target_arch = "wasm32")]
 use quicksilver::log::*;
-use crate::network::message::{GameState, PaddleState};
 
 #[derive(Debug)]
 pub struct SimplePong {
@@ -37,7 +37,7 @@ impl Ball {
 pub struct Paddle {
     pub position: Point2<f64>,
     pub shape: Cuboid<f64>,
-    pub player_name:String,
+    pub player_name: String,
     state: PaddleState,
 }
 
@@ -127,11 +127,7 @@ impl SimplePong {
         }
     }
 
-    pub fn toggle_pause(&mut self) {
-        self.paused = !self.paused;
-    }
-
-    pub fn update_state(&mut self, state:&GameState) {
+    pub fn update_state(&mut self, state: &GameState) {
         self.left_paddle.position.y = state.left_paddle_y;
         self.right_paddle.position.y = state.right_paddle_y;
         self.left_paddle.player_name = state.left_player_name.clone();
@@ -169,10 +165,10 @@ impl SimplePong {
 
     pub fn get_drawables(&self) -> (Paddle, Paddle, Point2<f64>, bool) {
         (
-            self.left_paddle.clone(),//todo investigate lifetime reference instead of clone
+            self.left_paddle.clone(), //todo investigate lifetime reference instead of clone
             self.right_paddle.clone(),
             self.ball.position.clone(),
-            self.paused
+            self.paused,
         )
     }
 }

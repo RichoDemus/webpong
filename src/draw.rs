@@ -1,11 +1,18 @@
+use crate::simple_pong::Paddle;
 use nalgebra::Point2;
 use quicksilver::geom::{Circle, Rectangle, Vector};
 use quicksilver::graphics::Color;
-use quicksilver::Graphics;
 use quicksilver::graphics::FontRenderer;
-use crate::simple_pong::Paddle;
+use quicksilver::Graphics;
 
-pub fn draw(gfx: &mut Graphics, font: &mut FontRenderer, paused: bool, left_paddle: Paddle, right_paddle: Paddle, ball: Point2<f64>) -> std::result::Result<(), Box<dyn std::error::Error>> {
+pub fn draw(
+    gfx: &mut Graphics,
+    font: &mut FontRenderer,
+    paused: bool,
+    left_paddle: Paddle,
+    right_paddle: Paddle,
+    ball: Point2<f64>,
+) -> std::result::Result<(), Box<dyn std::error::Error>> {
     let left_paddle_vec = Rectangle::new(
         Vector::new(20.0, left_paddle.position.y as f32 - 10.),
         Vector::new(10.0, 100.),
@@ -35,12 +42,7 @@ pub fn draw(gfx: &mut Graphics, font: &mut FontRenderer, paused: bool, left_padd
         Vector::new(700., 30.),
     )?;
     if paused {
-        font.draw(
-            gfx,
-            "Paused",
-            Color::GREEN,
-            Vector::new(400., 400.),
-        )?;
+        font.draw(gfx, "Paused", Color::GREEN, Vector::new(400., 400.))?;
     }
     Ok(())
 }

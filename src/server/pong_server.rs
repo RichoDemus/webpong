@@ -1,13 +1,13 @@
+use crate::network::message::{ClientMessage, GameState, Message, PaddleState, ServerMessage};
+use crate::network::ws_event::WsEvent;
+use crate::network::ws_server::WebsocketClient;
 use log::*;
 use nalgebra::{Isometry2, Point2, Vector2};
 use ncollide2d::query::Proximity;
 use ncollide2d::shape::Cuboid;
 use ncollide2d::{query, shape};
-use crate::network::ws_server::WebsocketClient;
-use crate::network::ws_event::WsEvent;
-use crate::network::message::{Message, ClientMessage, PaddleState, GameState, ServerMessage};
-use std::collections::VecDeque;
 use retain_mut::RetainMut;
+use std::collections::VecDeque;
 
 pub struct PongServer {
     left_paddle: Paddle,
@@ -17,7 +17,7 @@ pub struct PongServer {
     left_player: Option<WebsocketClient>,
     right_player: Option<WebsocketClient>,
     observers: VecDeque<WebsocketClient>,
-    send_gamestate:bool,
+    send_gamestate: bool,
 }
 
 pub struct Ball {
@@ -82,17 +82,25 @@ impl PongServer {
         //             self.send_gamestate = true;
         //     return;
         // }
-        info!("Added {} as observer", player.name.as_ref().unwrap_or(&String::from("N/A")));
+        info!(
+            "Added {} as observer",
+            player.name.as_ref().unwrap_or(&String::from("N/A"))
+        );
         self.observers.push_back(player);
         self.send_gamestate = true;
     }
 
     pub async fn tick(&mut self) {
-        if !self.observers.is_empty() && (self.send_gamestate || self.left_player.is_none() || self.right_player.is_none()) {
+        if !self.observers.is_empty()
+            && (self.send_gamestate || self.left_player.is_none() || self.right_player.is_none())
+        {
             //also use this to check for reshuffles
             if self.left_player.is_none() {
                 if let Some(new_player) = self.observers.pop_front() {
-                    info!("Promoting observer {} to left player", new_player.name.as_ref().unwrap_or(&String::from("N/A")));
+                    info!(
+                        "Promoting observer {} to left player",
+                        new_player.name.as_ref().unwrap_or(&String::from("N/A"))
+                    );
                     self.left_player = Some(new_player);
                 } else {
                     // info!("No observer to promote to left player");
@@ -100,7 +108,10 @@ impl PongServer {
             }
             if self.right_player.is_none() {
                 if let Some(new_player) = self.observers.pop_front() {
-                    info!("Promoting observer {} to right player", new_player.name.as_ref().unwrap_or(&String::from("N/A")));
+                    info!(
+                        "Promoting observer {} to right player",
+                        new_player.name.as_ref().unwrap_or(&String::from("N/A"))
+                    );
                     self.right_player = Some(new_player);
                 } else {
                     // info!("No observer to promote to right player");
@@ -130,14 +141,14 @@ impl PongServer {
                                 self.paused = !self.paused;
                                 self.send_gamestate = true;
                             }
-                        }
+                        },
                         _ => {}
-                    }
+                    },
                     WsEvent::Closed => {
                         self.left_player = None;
                         self.send_gamestate = true;
                     }
-                    _ => {},
+                    _ => {}
                 }
             }
         }
@@ -164,19 +175,19 @@ impl PongServer {
                                 self.paused = !self.paused;
                                 self.send_gamestate = true;
                             }
-                        }
+                        },
                         _ => {}
-                    }
+                    },
                     WsEvent::Closed => {
                         self.right_player = None;
                         self.send_gamestate = true;
                     }
-                    _ => {},
+                    _ => {}
                 }
             }
         }
 
-        self.observers.retain_mut(|observer|{
+        self.observers.retain_mut(|observer| {
             if let Some(WsEvent::Closed) = observer.event_stream.next() {
                 false
             } else {
@@ -214,8 +225,16 @@ impl PongServer {
                     left_paddle_state: self.left_paddle.state,
                     right_paddle_y: self.right_paddle.position.y,
                     right_paddle_state: self.right_paddle.state,
-                    left_player_name: self.left_player.as_ref().and_then(|p|p.name.clone()).unwrap_or(String::from("N/A")),
-                    right_player_name: self.right_player.as_ref().and_then(|p|p.name.clone()).unwrap_or(String::from("N/A")),
+                    left_player_name: self
+                        .left_player
+                        .as_ref()
+                        .and_then(|p| p.name.clone())
+                        .unwrap_or(String::from("N/A")),
+                    right_player_name: self
+                        .right_player
+                        .as_ref()
+                        .and_then(|p| p.name.clone())
+                        .unwrap_or(String::from("N/A")),
                     ball_position: self.ball.position.clone(),
                     ball_velocity: self.ball.velocity.clone(),
                     paused: self.paused,
@@ -242,7 +261,7 @@ impl PongServer {
         self.ball.position += self.ball.velocity.clone();
         if self.ball.position.x < 10. || self.ball.position.x > 790. {
             // goal
-            self.ball.velocity = Vector2::new(0., 0.);
+            self.ball = Ball::new();
             self.send_gamestate = true;
         }
         if self.ball.position.y < 10. || self.ball.position.y > 590. {
@@ -289,8 +308,16 @@ impl PongServer {
                 left_paddle_state: self.left_paddle.state,
                 right_paddle_y: self.right_paddle.position.y,
                 right_paddle_state: self.right_paddle.state,
-                left_player_name: self.left_player.as_ref().and_then(|p|p.name.clone()).unwrap_or(String::from("N/A")),
-                right_player_name: self.right_player.as_ref().and_then(|p|p.name.clone()).unwrap_or(String::from("N/A")),
+                left_player_name: self
+                    .left_player
+                    .as_ref()
+                    .and_then(|p| p.name.clone())
+                    .unwrap_or(String::from("N/A")),
+                right_player_name: self
+                    .right_player
+                    .as_ref()
+                    .and_then(|p| p.name.clone())
+                    .unwrap_or(String::from("N/A")),
                 ball_position: self.ball.position.clone(),
                 ball_velocity: self.ball.velocity.clone(),
                 paused: self.paused,
@@ -312,42 +339,6 @@ impl PongServer {
             self.send_gamestate = false;
         }
     }
-
-    pub fn toggle_pause(&mut self) {
-        self.paused = !self.paused;
-    }
-
-    pub fn set_paddle_state(&mut self, left_paddle: bool, stop_moving: bool, up: bool) {
-        if left_paddle {
-            if stop_moving {
-                self.left_paddle.state = PaddleState::Still;
-            } else if up {
-                self.left_paddle.state = PaddleState::Up;
-            } else {
-                self.left_paddle.state = PaddleState::Down;
-            }
-        } else {
-            if stop_moving {
-                self.right_paddle.state = PaddleState::Still;
-            } else if up {
-                self.right_paddle.state = PaddleState::Up;
-            } else {
-                self.right_paddle.state = PaddleState::Down;
-            }
-        }
-        info!(
-            "Paddle states: {:?} {:?}",
-            self.left_paddle.state, self.right_paddle.state
-        );
-    }
-
-    pub fn get_drawables(&self) -> (f64, f64, Point2<f64>) {
-        (
-            self.left_paddle.position.y,
-            self.right_paddle.position.y,
-            self.ball.position.clone(),
-        )
-    }
 }
 
 impl Default for PongServer {
@@ -360,7 +351,7 @@ impl Default for PongServer {
             left_player: None,
             right_player: None,
             observers: VecDeque::new(),
-            send_gamestate : false,
+            send_gamestate: false,
         }
     }
 }

@@ -9,7 +9,6 @@ use quicksilver::{
     geom::Vector, graphics::Color, Graphics, Input, Result, Settings, Timer, Window,
 };
 
-use crate::network::message;
 use crate::network::message::ServerMessage::SetName;
 use crate::network::message::{ClientMessage, Message, PaddleId, ServerMessage};
 #[cfg(not(target_arch = "wasm32"))]
@@ -18,7 +17,6 @@ use crate::network::ws_client::Websocket;
 use crate::network::ws_client_wasm::Websocket;
 use crate::network::ws_event::WsEvent;
 use crate::{draw, simple_pong};
-use quicksilver::blinds::event::KeyboardEvent;
 
 pub fn run() {
     quicksilver::run(
@@ -50,8 +48,6 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
     let ttf = VectorFont::from_slice(include_bytes!("BebasNeue-Regular.ttf"));
     let mut font = ttf.to_renderer(&gfx, 20.0)?;
 
-    let last_ws_message = String::new();
-
     let mut is_w_pressed = false;
     let mut is_s_pressed = false;
 
@@ -75,7 +71,7 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                         state = State::Play;
                     }
                 }
-                while let Some(evt) = input.next_event().await {}
+                while let Some(_evt) = input.next_event().await {}
                 while update_timer.tick() {}
                 if draw_timer.exhaust().is_some() {
                     gfx.clear(Color::BLACK);
@@ -181,7 +177,7 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                                 },
                                 ServerMessage::GameState(state) => {
                                     simple_pong.update_state(&state);
-                                },
+                                }
 
                                 SetName(_) => {}
                             },
@@ -202,7 +198,8 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
 
                     let (left_paddle, right_paddle, ball, paused) = simple_pong.get_drawables();
 
-                    draw::draw(&mut gfx, &mut font, paused, left_paddle, right_paddle, ball).expect("Draw failed");
+                    draw::draw(&mut gfx, &mut font, paused, left_paddle, right_paddle, ball)
+                        .expect("Draw failed");
 
                     // font.draw(
                     //     &mut gfx,

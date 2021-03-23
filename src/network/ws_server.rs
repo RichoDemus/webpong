@@ -66,6 +66,7 @@ impl WebsocketServer {
         Ok(result)
     }
 
+    #[allow(dead_code)]
     pub async fn close(&mut self) {
         info!("Starting to close server listening socket");
         *self.running.clone().lock().expect("running read lock") = false;

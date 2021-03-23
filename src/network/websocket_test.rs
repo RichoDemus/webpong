@@ -6,7 +6,6 @@ mod tests {
     use crate::network::message::ClientMessage;
     use crate::network::ws_event::WsEvent;
     use crate::network::{ws_client, ws_server};
-    use tungstenite::protocol::Role::Client;
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 10)]
     async fn my_test() -> Result<(), Box<dyn std::error::Error>> {
