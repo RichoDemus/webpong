@@ -201,14 +201,14 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
 
                     let (left_paddle, right_paddle, ball) = simple_pong.get_drawables();
 
-                    draw::draw(&mut gfx, left_paddle, right_paddle, ball);
+                    draw::draw(&mut gfx, &mut font, left_paddle, right_paddle, ball).expect("Draw failed");
 
-                    font.draw(
-                        &mut gfx,
-                        format!("ws: {}", last_ws_message).as_str(),
-                        Color::GREEN,
-                        Vector::new(10.0, 30.0),
-                    )?;
+                    // font.draw(
+                    //     &mut gfx,
+                    //     format!("ws: {}", last_ws_message).as_str(),
+                    //     Color::GREEN,
+                    //     Vector::new(10.0, 30.0),
+                    // )?;
 
                     gfx.present(&window)?;
                 }

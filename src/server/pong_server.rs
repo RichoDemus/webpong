@@ -88,7 +88,7 @@ impl PongServer {
     }
 
     pub async fn tick(&mut self) {
-        if self.send_gamestate || self.left_player.is_none() || self.right_player.is_none() {
+        if !self.observers.is_empty() && (self.send_gamestate || self.left_player.is_none() || self.right_player.is_none()) {
             //also use this to check for reshuffles
             if self.left_player.is_none() {
                 if let Some(new_player) = self.observers.pop_front() {
@@ -205,6 +205,8 @@ impl PongServer {
                 left_paddle_state: self.left_paddle.state,
                 right_paddle_y: self.right_paddle.position.y,
                 right_paddle_state: self.right_paddle.state,
+                left_player_name: self.left_player.as_ref().and_then(|p|p.name.clone()).unwrap_or(String::from("N/A")),
+                right_player_name: self.right_player.as_ref().and_then(|p|p.name.clone()).unwrap_or(String::from("N/A")),
             }));
 
             let mut futures = vec![];

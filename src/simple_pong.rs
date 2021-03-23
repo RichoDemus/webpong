@@ -33,10 +33,11 @@ impl Ball {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Paddle {
     pub position: Point2<f64>,
     pub shape: Cuboid<f64>,
+    pub player_name:String,
     state: PaddleState,
 }
 
@@ -45,6 +46,7 @@ impl Paddle {
         Paddle {
             position: Point2::new(20., 50.),
             shape: Cuboid::new(Vector2::new(10., 100.)),
+            player_name: String::new(),
             state: PaddleState::Still,
         }
     }
@@ -52,6 +54,7 @@ impl Paddle {
         Paddle {
             position: Point2::new(770., 50.),
             shape: Cuboid::new(Vector2::new(10., 100.)),
+            player_name: String::new(),
             state: PaddleState::Still,
         }
     }
@@ -131,8 +134,10 @@ impl SimplePong {
     pub fn update_state(&mut self, state:&GameState) {
         self.left_paddle.position.y = state.left_paddle_y;
         self.right_paddle.position.y = state.right_paddle_y;
+        self.left_paddle.player_name = state.left_player_name.clone();
         self.left_paddle.state = state.left_paddle_state;
         self.right_paddle.state = state.right_paddle_state;
+        self.right_paddle.player_name = state.right_player_name.clone();
     }
 
     pub fn set_paddle_state(&mut self, left_paddle: bool, stop_moving: bool, up: bool) {
@@ -159,10 +164,10 @@ impl SimplePong {
         );
     }
 
-    pub fn get_drawables(&self) -> (f64, f64, Point2<f64>) {
+    pub fn get_drawables(&self) -> (Paddle, Paddle, Point2<f64>) {
         (
-            self.left_paddle.position.y,
-            self.right_paddle.position.y,
+            self.left_paddle.clone(),//todo investigate lifetime reference instead of clone
+            self.right_paddle.clone(),
             self.ball.position.clone(),
         )
     }

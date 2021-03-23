@@ -48,6 +48,8 @@ pub struct GameState {
     pub left_paddle_state: PaddleState,
     pub right_paddle_y:f64,
     pub right_paddle_state: PaddleState,
+    pub left_player_name: String,
+    pub right_player_name: String,
 }
 
 #[cfg(test)]
