@@ -5,7 +5,7 @@ use quicksilver::Graphics;
 use quicksilver::graphics::FontRenderer;
 use crate::simple_pong::Paddle;
 
-pub fn draw(gfx: &mut Graphics, font: &mut FontRenderer, left_paddle: Paddle, right_paddle: Paddle, ball: Point2<f64>) -> std::result::Result<(), Box<dyn std::error::Error>> {
+pub fn draw(gfx: &mut Graphics, font: &mut FontRenderer, paused: bool, left_paddle: Paddle, right_paddle: Paddle, ball: Point2<f64>) -> std::result::Result<(), Box<dyn std::error::Error>> {
     let left_paddle_vec = Rectangle::new(
         Vector::new(20.0, left_paddle.position.y as f32 - 10.),
         Vector::new(10.0, 100.),
@@ -34,5 +34,13 @@ pub fn draw(gfx: &mut Graphics, font: &mut FontRenderer, left_paddle: Paddle, ri
         Color::GREEN,
         Vector::new(700., 30.),
     )?;
+    if paused {
+        font.draw(
+            gfx,
+            "Paused",
+            Color::GREEN,
+            Vector::new(400., 400.),
+        )?;
+    }
     Ok(())
 }

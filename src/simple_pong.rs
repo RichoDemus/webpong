@@ -138,6 +138,7 @@ impl SimplePong {
         self.left_paddle.state = state.left_paddle_state;
         self.right_paddle.state = state.right_paddle_state;
         self.right_paddle.player_name = state.right_player_name.clone();
+        self.paused = state.paused;
     }
 
     pub fn set_paddle_state(&mut self, left_paddle: bool, stop_moving: bool, up: bool) {
@@ -164,11 +165,12 @@ impl SimplePong {
         );
     }
 
-    pub fn get_drawables(&self) -> (Paddle, Paddle, Point2<f64>) {
+    pub fn get_drawables(&self) -> (Paddle, Paddle, Point2<f64>, bool) {
         (
             self.left_paddle.clone(),//todo investigate lifetime reference instead of clone
             self.right_paddle.clone(),
             self.ball.position.clone(),
+            self.paused
         )
     }
 }

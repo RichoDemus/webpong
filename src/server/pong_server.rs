@@ -126,6 +126,10 @@ impl PongServer {
                                 self.left_paddle.set_state(PaddleState::Still);
                                 self.send_gamestate = true;
                             }
+                            ClientMessage::TogglePause => {
+                                self.paused = !self.paused;
+                                self.send_gamestate = true;
+                            }
                         }
                         _ => {}
                     }
@@ -154,6 +158,10 @@ impl PongServer {
                             }
                             ClientMessage::PaddleStop => {
                                 self.right_paddle.set_state(PaddleState::Still);
+                                self.send_gamestate = true;
+                            }
+                            ClientMessage::TogglePause => {
+                                self.paused = !self.paused;
                                 self.send_gamestate = true;
                             }
                         }
@@ -207,6 +215,7 @@ impl PongServer {
                 right_paddle_state: self.right_paddle.state,
                 left_player_name: self.left_player.as_ref().and_then(|p|p.name.clone()).unwrap_or(String::from("N/A")),
                 right_player_name: self.right_player.as_ref().and_then(|p|p.name.clone()).unwrap_or(String::from("N/A")),
+                paused: self.paused,
             }));
 
             let mut futures = vec![];

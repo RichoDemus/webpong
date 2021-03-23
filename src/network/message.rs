@@ -13,6 +13,7 @@ pub enum ClientMessage {
     PaddleUp,
     PaddleDown,
     PaddleStop,
+    TogglePause,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
@@ -50,6 +51,7 @@ pub struct GameState {
     pub right_paddle_state: PaddleState,
     pub left_player_name: String,
     pub right_player_name: String,
+    pub paused:bool,
 }
 
 #[cfg(test)]

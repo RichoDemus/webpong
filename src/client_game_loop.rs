@@ -117,7 +117,8 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                         Event::KeyboardInput(key) => match key.key() {
                             Key::P => {
                                 if key.is_down() {
-                                    simple_pong.toggle_pause();
+                                    //simple_pong.toggle_pause();
+                                    ws.send(ClientMessage::TogglePause).await;
                                 }
                             }
                             Key::W => {
@@ -199,9 +200,9 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                 if draw_timer.exhaust().is_some() {
                     gfx.clear(Color::BLACK);
 
-                    let (left_paddle, right_paddle, ball) = simple_pong.get_drawables();
+                    let (left_paddle, right_paddle, ball, paused) = simple_pong.get_drawables();
 
-                    draw::draw(&mut gfx, &mut font, left_paddle, right_paddle, ball).expect("Draw failed");
+                    draw::draw(&mut gfx, &mut font, paused, left_paddle, right_paddle, ball).expect("Draw failed");
 
                     // font.draw(
                     //     &mut gfx,
