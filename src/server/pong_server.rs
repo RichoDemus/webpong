@@ -207,6 +207,82 @@ impl PongServer {
         };
         self.left_paddle.position.y += mov;
 
+        if self.paused {
+            if self.send_gamestate {
+                let state = Message::ServerMessage(ServerMessage::GameState(GameState {
+                    left_paddle_y: self.left_paddle.position.y,
+                    left_paddle_state: self.left_paddle.state,
+                    right_paddle_y: self.right_paddle.position.y,
+                    right_paddle_state: self.right_paddle.state,
+                    left_player_name: self.left_player.as_ref().and_then(|p|p.name.clone()).unwrap_or(String::from("N/A")),
+                    right_player_name: self.right_player.as_ref().and_then(|p|p.name.clone()).unwrap_or(String::from("N/A")),
+                    ball_position: self.ball.position.clone(),
+                    ball_velocity: self.ball.velocity.clone(),
+                    paused: self.paused,
+                }));
+
+                let mut futures = vec![];
+                if let Some(player) = self.left_player.as_mut() {
+                    futures.push(player.send(&state));
+                }
+                if let Some(player) = self.right_player.as_mut() {
+                    futures.push(player.send(&state));
+                }
+                for observer in &mut self.observers {
+                    futures.push(observer.send(&state));
+                }
+                let big_future = futures::future::join_all(futures);
+                big_future.await;
+                trace!("Sent some state");
+                self.send_gamestate = false;
+            }
+            return;
+        }
+
+        self.ball.position += self.ball.velocity.clone();
+        if self.ball.position.x < 10. || self.ball.position.x > 790. {
+            // goal
+            self.ball.velocity = Vector2::new(0., 0.);
+            self.send_gamestate = true;
+        }
+        if self.ball.position.y < 10. || self.ball.position.y > 590. {
+            // bounce up/down
+            self.ball.velocity.y *= -1.;
+            self.send_gamestate = true;
+        }
+
+        let ball_isometry = Isometry2::new(self.ball.position.clone().coords, nalgebra::zero());
+        let left_paddle_isometry =
+            Isometry2::new(self.left_paddle.position.clone().coords, nalgebra::zero());
+        let right_paddle_isometry =
+            Isometry2::new(self.right_paddle.position.clone().coords, nalgebra::zero());
+
+        let proximity = query::proximity(
+            &ball_isometry,
+            &self.ball.shape,
+            &left_paddle_isometry,
+            &self.left_paddle.shape,
+            0.,
+        );
+        if let Proximity::Intersecting = proximity {
+            // bounce left paddle
+            self.ball.velocity.x *= -1.;
+            self.send_gamestate = true;
+        }
+
+        let proximity = query::proximity(
+            &ball_isometry,
+            &self.ball.shape,
+            &right_paddle_isometry,
+            &self.right_paddle.shape,
+            0.,
+        );
+        if let Proximity::Intersecting = proximity {
+            // bounce right paddle
+            self.ball.velocity.x *= -1.;
+            self.send_gamestate = true;
+        }
+
         if self.send_gamestate {
             let state = Message::ServerMessage(ServerMessage::GameState(GameState {
                 left_paddle_y: self.left_paddle.position.y,
@@ -215,6 +291,8 @@ impl PongServer {
                 right_paddle_state: self.right_paddle.state,
                 left_player_name: self.left_player.as_ref().and_then(|p|p.name.clone()).unwrap_or(String::from("N/A")),
                 right_player_name: self.right_player.as_ref().and_then(|p|p.name.clone()).unwrap_or(String::from("N/A")),
+                ball_position: self.ball.position.clone(),
+                ball_velocity: self.ball.velocity.clone(),
                 paused: self.paused,
             }));
 
@@ -233,46 +311,6 @@ impl PongServer {
             trace!("Sent some state");
             self.send_gamestate = false;
         }
-
-        // if self.paused {
-        //     return;
-        // }
-        //
-        // self.ball.position += self.ball.velocity.clone();
-        // if self.ball.position.x < 10. || self.ball.position.x > 790. {
-        //     self.ball.velocity = Vector2::new(0., 0.);
-        // }
-        // if self.ball.position.y < 10. || self.ball.position.y > 590. {
-        //     self.ball.velocity.y *= -1.;
-        // }
-        //
-        // let ball_isometry = Isometry2::new(self.ball.position.clone().coords, nalgebra::zero());
-        // let left_paddle_isometry =
-        //     Isometry2::new(self.left_paddle.position.clone().coords, nalgebra::zero());
-        // let right_paddle_isometry =
-        //     Isometry2::new(self.right_paddle.position.clone().coords, nalgebra::zero());
-        //
-        // let proximity = query::proximity(
-        //     &ball_isometry,
-        //     &self.ball.shape,
-        //     &left_paddle_isometry,
-        //     &self.left_paddle.shape,
-        //     0.,
-        // );
-        // if let Proximity::Intersecting = proximity {
-        //     self.ball.velocity.x *= -1.;
-        // }
-        //
-        // let proximity = query::proximity(
-        //     &ball_isometry,
-        //     &self.ball.shape,
-        //     &right_paddle_isometry,
-        //     &self.right_paddle.shape,
-        //     0.,
-        // );
-        // if let Proximity::Intersecting = proximity {
-        //     self.ball.velocity.x *= -1.;
-        // }
     }
 
     pub fn toggle_pause(&mut self) {

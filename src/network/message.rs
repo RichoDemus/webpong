@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use nalgebra::{Isometry2, Point2, Vector2};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub enum Message {
@@ -43,7 +44,7 @@ impl Default for PaddleState {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct GameState {
     pub left_paddle_y: f64,
     pub left_paddle_state: PaddleState,
@@ -51,6 +52,8 @@ pub struct GameState {
     pub right_paddle_state: PaddleState,
     pub left_player_name: String,
     pub right_player_name: String,
+    pub ball_position: Point2<f64>,
+    pub ball_velocity: Vector2<f64>,
     pub paused:bool,
 }
 
