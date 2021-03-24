@@ -261,7 +261,8 @@ impl PongServer {
         self.ball.position += self.ball.velocity.clone();
         if self.ball.position.x < 10. || self.ball.position.x > 790. {
             // goal
-            self.ball = Ball::new();
+            // self.ball = Ball::new();
+            self.ball.velocity.x *= -1.;
             self.send_gamestate = true;
         }
         if self.ball.position.y < 10. || self.ball.position.y > 590. {

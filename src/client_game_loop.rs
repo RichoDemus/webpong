@@ -42,7 +42,7 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
 
     let mut simple_pong = simple_pong::SimplePong::new();
 
-    let mut update_timer = Timer::time_per_second(60.0);
+    let mut update_timer = Timer::time_per_second(100.0);
     let mut draw_timer = Timer::time_per_second(60.0);
 
     let ttf = VectorFont::from_slice(include_bytes!("BebasNeue-Regular.ttf"));
@@ -196,10 +196,19 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                 if draw_timer.exhaust().is_some() {
                     gfx.clear(Color::BLACK);
 
-                    let (left_paddle, right_paddle, ball, paused) = simple_pong.get_drawables();
+                    let (left_paddle, right_paddle, ball, server_ball, paused) =
+                        simple_pong.get_drawables();
 
-                    draw::draw(&mut gfx, &mut font, paused, left_paddle, right_paddle, ball)
-                        .expect("Draw failed");
+                    draw::draw(
+                        &mut gfx,
+                        &mut font,
+                        paused,
+                        left_paddle,
+                        right_paddle,
+                        ball,
+                        server_ball,
+                    )
+                    .expect("Draw failed");
 
                     // font.draw(
                     //     &mut gfx,

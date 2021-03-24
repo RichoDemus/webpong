@@ -13,6 +13,7 @@ pub struct SimplePong {
     left_paddle: Paddle,
     right_paddle: Paddle,
     ball: Ball,
+    server_ball: Ball,
     paused: bool,
 }
 
@@ -66,6 +67,7 @@ impl SimplePong {
             left_paddle: Paddle::left(),
             right_paddle: Paddle::right(),
             ball: Ball::new(),
+            server_ball: Ball::new(),
             paused: true,
         }
     }
@@ -92,11 +94,21 @@ impl SimplePong {
 
         self.ball.position += self.ball.velocity.clone();
         if self.ball.position.x < 10. || self.ball.position.x > 790. {
-            self.ball.velocity = Vector2::new(0., 0.);
+            // self.ball.velocity = Vector2::new(0., 0.);
+            self.ball.velocity.x *= -1.;
         }
         if self.ball.position.y < 10. || self.ball.position.y > 590. {
             self.ball.velocity.y *= -1.;
         }
+
+        self.server_ball.position += self.server_ball.velocity.clone();
+        // if self.server_ball.position.x < 10. || self.server_ball.position.x > 790. {
+        //     // self.server_ball.velocity = Vector2::new(0., 0.);
+        //     self.server_ball.velocity.x *= -1.;
+        // }
+        // if self.server_ball.position.y < 10. || self.server_ball.position.y > 590. {
+        //     self.server_ball.velocity.y *= -1.;
+        // }
 
         let ball_isometry = Isometry2::new(self.ball.position.clone().coords, nalgebra::zero());
         let left_paddle_isometry =
@@ -134,8 +146,8 @@ impl SimplePong {
         self.left_paddle.state = state.left_paddle_state;
         self.right_paddle.state = state.right_paddle_state;
         self.right_paddle.player_name = state.right_player_name.clone();
-        self.ball.position = state.ball_position.clone();
-        self.ball.velocity = state.ball_velocity.clone();
+        self.server_ball.position = state.ball_position.clone();
+        self.server_ball.velocity = state.ball_velocity.clone();
         self.paused = state.paused;
     }
 
@@ -163,11 +175,12 @@ impl SimplePong {
         );
     }
 
-    pub fn get_drawables(&self) -> (Paddle, Paddle, Point2<f64>, bool) {
+    pub fn get_drawables(&self) -> (Paddle, Paddle, Point2<f64>, Point2<f64>, bool) {
         (
             self.left_paddle.clone(), //todo investigate lifetime reference instead of clone
             self.right_paddle.clone(),
             self.ball.position.clone(),
+            self.server_ball.position.clone(),
             self.paused,
         )
     }

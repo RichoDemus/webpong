@@ -12,6 +12,7 @@ pub fn draw(
     left_paddle: Paddle,
     right_paddle: Paddle,
     ball: Point2<f64>,
+    server_ball: Point2<f64>,
 ) -> std::result::Result<(), Box<dyn std::error::Error>> {
     let left_paddle_vec = Rectangle::new(
         Vector::new(20.0, left_paddle.position.y as f32 - 10.),
@@ -28,6 +29,12 @@ pub fn draw(
     let position = Vector::new(ball.x as f32, ball.y as f32);
     let ball = Circle::new(position, 5.);
     gfx.fill_circle(&ball, Color::WHITE);
+
+    if cfg!(debug_assertions) {
+        let position = Vector::new(server_ball.x as f32, server_ball.y as f32);
+        let ball = Circle::new(position, 5.);
+        gfx.fill_circle(&ball, Color::CYAN);
+    }
 
     font.draw(
         gfx,

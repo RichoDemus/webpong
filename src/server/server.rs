@@ -5,6 +5,7 @@ use crate::network::message::{ClientMessage, Message, ServerMessage};
 use crate::network::ws_event::WsEvent;
 use crate::network::ws_server;
 use crate::server::pong_server::PongServer;
+use quicksilver::Timer;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 
@@ -23,66 +24,70 @@ pub async fn start() {
 
     let mut pong_server = PongServer::default();
 
+    let mut update_timer = Timer::time_per_second(100.0);
     //lobby
     loop {
-        while let Some(mut client) = ws_server.event_stream.next_event().await {
-            info!("Client {} connected", client.id);
-            let rand_string: String = thread_rng()
-                .sample_iter(&Alphanumeric)
-                .take(5)
-                .map(char::from)
+        while update_timer.tick() {
+            // next_tick = Instant::now() + Duration::from_millis(10);
+            while let Some(mut client) = ws_server.event_stream.next_event().await {
+                info!("Client {} connected", client.id);
+                let rand_string: String = thread_rng()
+                    .sample_iter(&Alphanumeric)
+                    .take(5)
+                    .map(char::from)
+                    .collect();
+                client.name = Some(rand_string.clone());
+                client
+                    .send(&Message::ServerMessage(ServerMessage::SetName(rand_string)))
+                    .await;
+                pre_lobby_players.push(client);
+            }
+
+            pre_lobby_players = pre_lobby_players
+                .into_iter()
+                .filter_map(|player| {
+                    let event = player
+                        .event_stream
+                        .buffer()
+                        .lock()
+                        .expect("asd")
+                        .pop_front();
+
+                    if let Some(WsEvent::Error(e)) = event {
+                        warn!("Err: {:?}", e);
+                        Some(player)
+                    } else if let Some(WsEvent::Message(Message::ClientMessage(
+                        ClientMessage::EnterGame,
+                    ))) = event
+                    {
+                        info!("Player {} entering game", player);
+                        pong_server.add_player(player);
+                        new_player_in_game = true;
+                        None
+                    } else if let Some(WsEvent::Closed) = event {
+                        None
+                    } else {
+                        Some(player)
+                    }
+                })
                 .collect();
-            client.name = Some(rand_string.clone());
-            client
-                .send(&Message::ServerMessage(ServerMessage::SetName(rand_string)))
-                .await;
-            pre_lobby_players.push(client);
+
+            // for player in &mut players_in_game {
+            //     if new_player_in_game {
+            //         player
+            //             .send(&Message::ServerMessage(ServerMessage::GameState(
+            //                 GameState::default(),
+            //             )))
+            //             .await;
+            //     }
+            // }
+            new_player_in_game = false;
+
+            pong_server.tick().await;
+
+            // info!("players, pre-game: {} game: {}", pre_lobby_players.len(), players_in_game.len());
         }
-
-        pre_lobby_players = pre_lobby_players
-            .into_iter()
-            .filter_map(|player| {
-                let event = player
-                    .event_stream
-                    .buffer()
-                    .lock()
-                    .expect("asd")
-                    .pop_front();
-
-                if let Some(WsEvent::Error(e)) = event {
-                    warn!("Err: {:?}", e);
-                    Some(player)
-                } else if let Some(WsEvent::Message(Message::ClientMessage(
-                    ClientMessage::EnterGame,
-                ))) = event
-                {
-                    info!("Player {} entering game", player);
-                    pong_server.add_player(player);
-                    new_player_in_game = true;
-                    None
-                } else if let Some(WsEvent::Closed) = event {
-                    None
-                } else {
-                    Some(player)
-                }
-            })
-            .collect();
-
-        // for player in &mut players_in_game {
-        //     if new_player_in_game {
-        //         player
-        //             .send(&Message::ServerMessage(ServerMessage::GameState(
-        //                 GameState::default(),
-        //             )))
-        //             .await;
-        //     }
-        // }
-        new_player_in_game = false;
-
-        pong_server.tick().await;
-
-        // info!("players, pre-game: {} game: {}", pre_lobby_players.len(), players_in_game.len());
-
-        tokio::time::sleep(Duration::from_millis(10)).await;
+        // tokio::time::sleep_until(next_tick).await;
+        tokio::time::sleep(Duration::from_millis(1)).await;
     }
 }
