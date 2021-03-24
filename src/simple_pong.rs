@@ -148,6 +148,8 @@ impl SimplePong {
         self.right_paddle.player_name = state.right_player_name.clone();
         self.server_ball.position = state.ball_position.clone();
         self.server_ball.velocity = state.ball_velocity.clone();
+        self.ball.position = state.ball_position.clone();
+        self.ball.velocity = state.ball_velocity.clone();
         self.paused = state.paused;
     }
 
