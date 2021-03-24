@@ -118,6 +118,9 @@ impl PongServer {
                 }
             }
         }
+        if self.left_player.is_none() && self.right_player.is_none() {
+            self.paused = true;
+        }
         // info!("Tick, left some: {}, send state: {}", self.left_player.is_some(), self.send_gamestate);
         if let Some(left_player) = self.left_player.as_mut() {
             if let Some(evt) = left_player.event_stream.next() {
