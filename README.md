@@ -4,6 +4,11 @@ currently being deployed to [gh pages](https://richodemus.github.io/webpong/) vi
 ## deploy to gh pages
 see rust.yaml
 
+### redeploy on server
+```
+ssh richodemus@richodemus.com "docker-compose -f richo-google-cloud/webpong/docker-compose.yaml pull && docker-compose -f richo-google-cloud/webpong/docker-compose.yaml down && docker-compose -f richo-google-cloud/webpong/docker-compose.yaml up -d"
+```
+
 ## locally
 ```
 cargo build --release --target wasm32-unknown-unknown
