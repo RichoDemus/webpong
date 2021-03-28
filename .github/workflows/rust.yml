@@ -38,9 +38,12 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@4.1.0
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: target/distribution # The folder the action should deploy.
+          branch: gh-pages # The branch the action should deploy to.
+          folder: target/distribution # The folder the action should deploy.
+          single-commit: true
+      - name: Check deploy status
+        if: env.deployment_status != 'success'
+        run: exit 1
 
   build-docker:
     runs-on: ubuntu-latest
