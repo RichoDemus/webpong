@@ -1,6 +1,8 @@
 use futures::stream::SplitSink;
 use futures_util::{SinkExt, StreamExt};
-use tokio_tungstenite::{connect_async, tungstenite::protocol::Message, WebSocketStream};
+use tokio_tungstenite::{
+    connect_async, tungstenite::protocol::Message, MaybeTlsStream, WebSocketStream,
+};
 use url::Url;
 
 use crate::event_stream::EventStream;
@@ -9,12 +11,7 @@ use crate::network::ws_event::WsEvent;
 pub struct Websocket {
     pub event_stream: EventStream<WsEvent>,
     write: SplitSink<
-        WebSocketStream<
-            tokio_tungstenite::stream::Stream<
-                tokio::net::TcpStream,
-                tokio_native_tls::TlsStream<tokio::net::TcpStream>,
-            >,
-        >,
+        WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>,
         tokio_tungstenite::tungstenite::Message,
     >,
 }

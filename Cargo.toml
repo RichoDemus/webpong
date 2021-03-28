@@ -5,11 +5,10 @@ authors = ["RichoDemus <git@richodemus.com>"]
 edition = "2018"
 
 [dependencies]
-futures = { version = "*", default-features = false }
-#tungstenite = "0.13.0"
+futures = { version = "0.3.13", default-features = false }
 send_wrapper = "0.5.0"
 futures-util = "0.3.13"
-nalgebra = {version ="0.25.1", features = ["serde", "serde-serialize"]}
+nalgebra = { version = "0.25.1", features = ["serde", "serde-serialize"] }
 ncollide2d = "0.28.0"
 serde_json = "1.0.64"
 serde = "1.0.124"
@@ -19,9 +18,9 @@ quicksilver = "0.4.0"
 tokio = { version = "1.2.0", features = ["full"] }
 warp = "0.3"
 url = "2.2.1"
-futures-util = "*" #todo try to lock
+futures-util = "0.3.13"
 tungstenite = "0.13.0"
-tokio-tungstenite = {version="*", features = ["native-tls", "tls"]}
+tokio-tungstenite = { version = "0.14.0" }
 tokio-native-tls = "0.3.0"
 log = "0.4.14"
 env_logger = "0.8.3"
@@ -30,12 +29,10 @@ uuid = { version = "0.8", features = ["serde", "v4"] }
 rand = "0.8.0"
 retain_mut = "0.1.2"
 
-#futures = "*"
-
-futures-channel = "*"
+futures-channel = "0.3.13"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-quicksilver = {version = "0.4.0", features = ["web-sys"] }
+quicksilver = { version = "0.4.0", features = ["web-sys"] }
 console_error_panic_hook = "0.1.6"
 wasm-bindgen = "0.2.72"
 js-sys = "0.3"
