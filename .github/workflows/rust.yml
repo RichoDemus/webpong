@@ -33,6 +33,8 @@ jobs:
         run: wasm-bindgen --no-typescript --target web --out-name wasm --out-dir target/distribution target/wasm32-unknown-unknown/release/webpong.wasm
       - name: copy static files
         run: cp index.html target/distribution
+      - name: List files to deploy
+        run: tree target/distribution
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
