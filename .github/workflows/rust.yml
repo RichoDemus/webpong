@@ -38,8 +38,8 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@4.1.0
         with:
-          branch: gh-pages # The branch the action should deploy to.
-          folder: target/distribution # The folder the action should deploy.
+          branch: gh-pages
+          folder: target/distribution
           single-commit: true
       - name: Check deploy status
         if: env.deployment_status != 'success'
