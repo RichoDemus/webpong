@@ -75,9 +75,6 @@ jobs:
           branch: gh-pages
           folder: target/distribution
           single-commit: true
-      - name: Check deploy status
-        if: env.deployment_status != 'success'
-        run: exit 1
 
   build-docker:
     runs-on: ubuntu-latest
