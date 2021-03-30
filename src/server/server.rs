@@ -8,6 +8,11 @@ use crate::server::pong_server::PongServer;
 use quicksilver::Timer;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
+use std::sync::{Arc, Mutex};
+
+pub struct Server {
+    running: Arc<Mutex<bool>>,
+}
 
 pub async fn start() {
     let _ = env_logger::builder()
@@ -25,8 +30,10 @@ pub async fn start() {
     let mut pong_server = PongServer::default();
 
     let mut update_timer = Timer::time_per_second(100.0);
+    let mut running = Arc::new(Mutex::new(true));
+    let mut running_clone = running.clone();
     //lobby
-    loop {
+    while *running_clone.lock().unwrap() == true {
         while update_timer.tick() {
             // next_tick = Instant::now() + Duration::from_millis(10);
             while let Some(mut client) = ws_server.event_stream.next_event().await {
