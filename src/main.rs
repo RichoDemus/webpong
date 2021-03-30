@@ -10,7 +10,7 @@ mod simple_pong;
 
 #[cfg(not(target_arch = "wasm32"))]
 mod server;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(test)]
 mod play_around_w_server;
 
 #[cfg(not(target_arch = "wasm32"))]
