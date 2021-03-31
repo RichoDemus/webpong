@@ -85,4 +85,42 @@ mod tests {
         sleep(Duration::from_millis(300)).await;
         Ok(())
     }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 20)]
+    async fn test_multiple() -> Result<(), Box<dyn std::error::Error>> {
+        let _ = env_logger::builder()
+            .filter_level(log::LevelFilter::Warn)
+            .try_init();
+
+        let mut servers = vec![];
+        for _ in 1..5_000 {
+            servers.push(ServerStub::start());
+        }
+        warn!("Server futures created");
+        let servers = futures::future::join_all(servers).await;
+        warn!("Server futures completed");
+
+        let mut servers2 = vec![];
+        for server in servers {
+            let server = server?;
+            servers2.push(server);
+        }
+        warn!("Server future results unpacked, time to wait 3s");
+        //done and running
+        sleep(Duration::from_millis(3000)).await;
+        warn!("Done waiting");
+        let futures = servers2.into_iter()
+            .map(|server|server.stop())
+            .collect::<Vec<_>>();
+        warn!("Server stop futures created");
+        let stopped_servers = futures::future::join_all(futures).await;
+        warn!("Server stop futures complete");
+
+        for completed_future in stopped_servers {
+            completed_future?;
+        }
+        warn!("Server stop results unpacked");
+
+        Ok(())
+    }
 }
