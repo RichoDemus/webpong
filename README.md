@@ -25,3 +25,8 @@ cargo build --target wasm32-unknown-unknown; wasm-bindgen --no-typescript --targ
 ```
 cargo check; cargo check --target wasm32-unknown-unknown; cargo check --tests
 ```
+
+## Super strict clippy
+```
+cargo clippy -- -W clippy::nursery -W clippy::pedantic -W clippy::cargo
+```
